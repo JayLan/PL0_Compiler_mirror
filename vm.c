@@ -464,7 +464,6 @@ int execute(struct stack **stackPtr){
                     return 1;
                 }
 
-
     }
     return 0;
 
