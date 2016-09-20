@@ -38,14 +38,14 @@ const char opNamesSIO [3][4] = {"OUT", "INP", "HLT" };
 
 /* structures */
 struct instruction{
-
+    
     int op;
     int  l;
     int  m;
 };
 
 struct registers{
-
+    
     int sp;
     int bp;
     int pc;
@@ -64,35 +64,35 @@ int  readFile(char* filename, struct instruction* program);
 
 
 int main(int argc, char** argv){
-
+    
     int maxWidth = 4;
     char* filename = argv[1];
     struct instruction instr_array [MAX_CODE_LENGTH];
     int* stack = (int*)calloc(MAX_STACK_HEIGHT, sizeof(int));
     struct registers* reg = (struct registers*)calloc(1, sizeof(struct registers));
     
-	reg->sp = 0;
-	reg->bp = 1;
-	reg->pc = 0;
-
+    reg->sp = 0;
+    reg->bp = 1;
+    reg->pc = 0;
+    
     // scan in input from file and store in instruction array
     if ( readFile(filename, instr_array) ) {
-         
+        
         printf("couldn't open file %s.\n", argv[1]);
         return 1;
     }
     
     // print all program instructions
     print_Program(instr_array, filename);
-
+    
     // begin printing and formatting for the execution output
     printf("Execution:\n");
     printf("%*s   pc   bp   sp   stack\n", 19, "");
     printf("%*s %*d %*d %*d\n", 19, "", maxWidth, reg->pc, maxWidth, reg->bp, maxWidth, reg->sp);
-
+    
     // fetch and execute cycle
     fetch(instr_array, reg, stack);
-
+    
     return 0;
     
 } // END main
@@ -108,12 +108,12 @@ int main(int argc, char** argv){
  */
 
 void fetch(struct instruction instr_array [], struct registers* reg, int* stack){
-
+    
     int halt = 0;
     int maxWidth = 4;
     
     while (!halt){
-
+        
         // check if program counter is in-bounds
         if (reg->pc >= MAX_CODE_LENGTH){
             halt = 1;
@@ -122,16 +122,17 @@ void fetch(struct instruction instr_array [], struct registers* reg, int* stack)
         
         // display program counter
         printf("%*d  ", maxWidth, reg->pc);
-
+        
         // fetch the next instruction
         reg->ir = instr_array[reg->pc];
+        reg->pc++;
         
         // print out operation, lexicographical level, modifier
         print_Instruction((reg->ir).op, (reg->ir).l, (reg->ir).m);
         
         // execute operation
         halt = halt | execute(reg, stack);
-
+        
         // display program counter, base pointer, stack pointer and stack
         printf("%*d %*d %*d", maxWidth, reg->pc, maxWidth, reg->bp, maxWidth, reg->sp);
         print_Stack(reg, stack);
@@ -148,40 +149,40 @@ void fetch(struct instruction instr_array [], struct registers* reg, int* stack)
  * Post-Conditions:  Reads file and stores instructions in provided array.
  *                   Returns 0 on success, 1 on failure.
  */
- 
-int readFile(char* filename, struct instruction* instr_array){
 
+int readFile(char* filename, struct instruction* instr_array){
+    
     int numInstructions = 0;
     int n0 = 0, n1 = 0, n2 = 0;
     char* mode = "r";
-
+    
     FILE* fp = fopen(filename, mode);
-
+    
     if (fp == NULL){
         return 1;
     }
-
-    // read until eof or max instructions read 
-    while ( (numInstructions < MAX_CODE_LENGTH) && !feof(fp) ){
     
+    // read until eof or max instructions read
+    while ( (numInstructions < MAX_CODE_LENGTH) && !feof(fp) ){
+        
         fscanf(fp, "%d %d %d", &n0, &n1, &n2);
         instr_array[numInstructions].op = n0;
         instr_array[numInstructions].l  = n1;
         instr_array[numInstructions].m  = n2;
         numInstructions++;
     }
-
+    
     // mark end of program code
     numInstructions--;
     instr_array[numInstructions].op = 0;
     instr_array[numInstructions].l  = 0;
     instr_array[numInstructions].m  = 0;
-
-    // close file 
+    
+    // close file
     fclose(fp);
-
+    
     return 0;
-
+    
 } // END read file
 
 //=========================================================================
@@ -194,192 +195,192 @@ int readFile(char* filename, struct instruction* instr_array){
  */
 
 int execute(struct registers* reg, int* stack){
-
+    
     switch((reg->ir).op){
-
-            // LIT: Pushes value M onto the stack
-            case 1:
             
-                reg->sp = reg->sp + 1;
-                stack[reg->sp] = (reg->ir).m;
-                break;
-
+            // LIT: Pushes value M onto the stack
+        case 1:
+            
+            reg->sp = reg->sp + 1;
+            stack[reg->sp] = (reg->ir).m;
+            break;
+            
             // OPR: Performs an arithmetic or logical operation as defined by
             //      the instruction registers modifier
-            case 2:
-
-                // RET
-                if ((reg->ir).m == 0){
-                    reg->sp = (reg->bp) - 1;
-                    reg->pc = stack[(reg->sp) + 4];
-                    reg->bp = stack[(reg->sp) + 3];
-                    break;
-                }
-
-                // NEG
-                if ((reg->ir).m == 1){
-                    stack[reg->sp] = -(stack[reg->sp]);
-                    break;
-                }
-
-                // ADD
-                if ((reg->ir).m == 2){
-                    reg->sp = (reg->sp) - 1;
-                    stack[reg->sp] = stack[reg->sp] + stack[(reg->sp) + 1];
-                    break;
-                }
-
-                // SUB
-                if ((reg->ir).m == 3){
-                    reg->sp = (reg->sp) - 1;
-                    stack[reg->sp] = stack[reg->sp] - stack[(reg->sp) + 1];
-                    break;
-                }
-
-                // MUL
-                if ((reg->ir).m == 4){
-                    reg->sp = (reg->sp) - 1;
-                    stack[reg->sp] = stack[reg->sp] * stack[(reg->sp) + 1];
-                    break;
-                }
-
-                // DIV
-                if ((reg->ir).m == 5){
-                    reg->sp = (reg->sp) - 1;
-                    stack[reg->sp] = stack[reg->sp] / stack[(reg->sp) + 1];
-                    break;
-                }
-
-                // ODD
-                if ((reg->ir).m == 6){
-                    stack[reg->sp] = stack[reg->sp] % 2;
-                    break;
-                }
-
-                // MOD
-                if ((reg->ir).m == 7){
-                    reg->sp = (reg->sp) - 1;
-                    stack[reg->sp] = stack[reg->sp] % stack[(reg->sp) + 1];
-                    break;
-                }
-
-                // EQL
-                if ((reg->ir).m == 8){
-                    reg->sp = (reg->sp) - 1;
-                    stack[(reg->sp)] = stack[reg->sp] == stack[(reg->sp) + 1];
-                    break;
-                }
-
-                // NEQ
-                if ((reg->ir).m == 9){
-                    reg->sp = (reg->sp) - 1;
-                    stack[reg->sp] = stack[reg->sp] != stack[(reg->sp) + 1];
-                    break;
-                }
-
-                // LSS
-                if ((reg->ir).m == 10){
-                    reg->sp = (reg->sp) - 1;
-                    stack[reg->sp] = stack[reg->sp] < stack[(reg->sp) + 1];
-                    break;
-                }
-
-                // LEQ
-                if ((reg->ir).m == 11){
-                    reg->sp = (reg->sp) - 1;
-                    stack[reg->sp] = stack[reg->sp] <= stack[(reg->sp) + 1];
-                    break;
-                }
-
-                // GTR
-                if ((reg->ir).m == 12){
-                    reg->sp = (reg->sp) - 1;
-                    stack[reg->sp] = stack[reg->sp] > stack[(reg->sp) + 1];
-                    break;
-                }
-
-                // GEQ
-                if ((reg->ir).m == 13){
-                    reg->sp = (reg->sp) - 1;
-                    stack[reg->sp] = stack[reg->sp] >= stack[(reg->sp) + 1];
-                    break;
-                }
-
+        case 2:
+            
+            // RET
+            if ((reg->ir).m == 0){
+                reg->sp = (reg->bp) - 1;
+                reg->pc = stack[(reg->sp) + 4];
+                reg->bp = stack[(reg->sp) + 3];
+                break;
+            }
+            
+            // NEG
+            if ((reg->ir).m == 1){
+                stack[reg->sp] = -(stack[reg->sp]);
+                break;
+            }
+            
+            // ADD
+            if ((reg->ir).m == 2){
+                reg->sp = (reg->sp) - 1;
+                stack[reg->sp] = stack[reg->sp] + stack[(reg->sp) + 1];
+                break;
+            }
+            
+            // SUB
+            if ((reg->ir).m == 3){
+                reg->sp = (reg->sp) - 1;
+                stack[reg->sp] = stack[reg->sp] - stack[(reg->sp) + 1];
+                break;
+            }
+            
+            // MUL
+            if ((reg->ir).m == 4){
+                reg->sp = (reg->sp) - 1;
+                stack[reg->sp] = stack[reg->sp] * stack[(reg->sp) + 1];
+                break;
+            }
+            
+            // DIV
+            if ((reg->ir).m == 5){
+                reg->sp = (reg->sp) - 1;
+                stack[reg->sp] = stack[reg->sp] / stack[(reg->sp) + 1];
+                break;
+            }
+            
+            // ODD
+            if ((reg->ir).m == 6){
+                stack[reg->sp] = stack[reg->sp] % 2;
+                break;
+            }
+            
+            // MOD
+            if ((reg->ir).m == 7){
+                reg->sp = (reg->sp) - 1;
+                stack[reg->sp] = stack[reg->sp] % stack[(reg->sp) + 1];
+                break;
+            }
+            
+            // EQL
+            if ((reg->ir).m == 8){
+                reg->sp = (reg->sp) - 1;
+                stack[(reg->sp)] = stack[reg->sp] == stack[(reg->sp) + 1];
+                break;
+            }
+            
+            // NEQ
+            if ((reg->ir).m == 9){
+                reg->sp = (reg->sp) - 1;
+                stack[reg->sp] = stack[reg->sp] != stack[(reg->sp) + 1];
+                break;
+            }
+            
+            // LSS
+            if ((reg->ir).m == 10){
+                reg->sp = (reg->sp) - 1;
+                stack[reg->sp] = stack[reg->sp] < stack[(reg->sp) + 1];
+                break;
+            }
+            
+            // LEQ
+            if ((reg->ir).m == 11){
+                reg->sp = (reg->sp) - 1;
+                stack[reg->sp] = stack[reg->sp] <= stack[(reg->sp) + 1];
+                break;
+            }
+            
+            // GTR
+            if ((reg->ir).m == 12){
+                reg->sp = (reg->sp) - 1;
+                stack[reg->sp] = stack[reg->sp] > stack[(reg->sp) + 1];
+                break;
+            }
+            
+            // GEQ
+            if ((reg->ir).m == 13){
+                reg->sp = (reg->sp) - 1;
+                stack[reg->sp] = stack[reg->sp] >= stack[(reg->sp) + 1];
+                break;
+            }
+            
             // LOD: Get value at offset M in frame L levels down and push it.
-            case 3:
+        case 3:
             
-                reg->sp = (reg->sp) + 1;
-                stack[reg->sp] = stack[base((reg->ir).l, reg->bp, stack) + (reg->ir).m];
-                break;
-
+            reg->sp = (reg->sp) + 1;
+            stack[reg->sp] = stack[base((reg->ir).l, reg->bp, stack) + (reg->ir).m];
+            break;
+            
             // STO: Pop  and insert value at offset M in frame L levels down.
-            case 4:
+        case 4:
             
-                stack[base((reg->ir).l, reg->bp, stack) + (reg->ir).m] = stack[reg->sp];
-                reg->sp = (reg->sp) - 1;
-                break;
-
+            stack[base((reg->ir).l, reg->bp, stack) + (reg->ir).m] = stack[reg->sp];
+            reg->sp = (reg->sp) - 1;
+            break;
+            
             // CAL: Call procedure at M (generates new stack frame)
-            case 5:
+        case 5:
             
-                stack[(reg->sp)+1] = 0;
-                stack[(reg->sp)+2] = base((reg->ir).l, reg->bp, stack);
-                stack[(reg->sp)+3] = reg->bp;
-                stack[(reg->sp)+4] = reg->pc;
-                reg->bp = (reg->sp) + 1;
-                reg->pc = (reg->ir).m;
-                break;
-
+            stack[(reg->sp)+1] = 0;
+            stack[(reg->sp)+2] = base((reg->ir).l, reg->bp, stack);
+            stack[(reg->sp)+3] = reg->bp;
+            stack[(reg->sp)+4] = reg->pc;
+            reg->bp = (reg->sp) + 1;
+            reg->pc = (reg->ir).m;
+            break;
+            
             // INC: Allocate M locals on stack
-            case 6:
+        case 6:
             
-                reg->sp = (reg->sp) + (reg->ir).m;
-                break;
-
+            reg->sp = (reg->sp) + (reg->ir).m;
+            break;
+            
             // JMP: Jump to M
-            case 7:
+        case 7:
             
-                reg->pc = (reg->ir).m;
-                break;
-
+            reg->pc = (reg->ir).m;
+            break;
+            
             // JPC: Pop stack and jump to M if value is equal to 0
-            case 8:
+        case 8:
             
-                if (stack[reg->sp] == 0){
+            if (stack[reg->sp] == 0){
                 
-                    reg->pc = (reg->ir).m;
-                }
-                
-                reg->sp = (reg->sp) - 1;
-                break;
-
+                reg->pc = (reg->ir).m;
+            }
+            
+            reg->sp = (reg->sp) - 1;
+            break;
+            
             // SIO
-            case 9:
-
-                //OUT: Pop stack and print out value
-                if ((reg->ir).m == 0){
+        case 9:
+            
+            //OUT: Pop stack and print out value
+            if ((reg->ir).m == 0){
                 
-                    printf("%d", stack[reg->sp]);
-                    reg->sp = (reg->sp) - 1;
-                }
-
-                //INP: Read input from user and push it
-                if ((reg->ir).m == 1){
+                printf("%d", stack[reg->sp]);
+                reg->sp = (reg->sp) - 1;
+            }
+            
+            //INP: Read input from user and push it
+            if ((reg->ir).m == 1){
                 
-                    reg->sp = (reg->sp) + 1;
-                    scanf("%d", &(stack[reg->sp]));
-                }
-
-                //HLT: Halt the machine
-                if ((reg->ir).m == 2){
+                reg->sp = (reg->sp) + 1;
+                scanf("%d", &(stack[reg->sp]));
+            }
+            
+            //HLT: Halt the machine
+            if ((reg->ir).m == 2){
                 
-                    return 1;
-                }
-
+                return 1;
+            }
+            
     } // END switch
     
     return 0;
-
+    
 } // END execute
 
 //=========================================================================
@@ -391,15 +392,15 @@ int execute(struct registers* reg, int* stack){
  */
 
 int base(int level, int b, int* stack){
-
-    while (level > 0){
     
+    while (level > 0){
+        
         b = stack[b + 2];
         level--;
     }
-
+    
     return b;
-
+    
 } // END base
 
 //=========================================================================
@@ -407,50 +408,50 @@ int base(int level, int b, int* stack){
 /*
  * Print instuction
  * Pre-condition:  valid op(eration) and m(odifier) codes
- * Post-condition: 
+ * Post-condition:
  */
 
 void print_Instruction(int op, int l, int m){
-
+    
     /* max width for displaying level and modifier integers*/
     int maxWidth = 4;
     
     /* operation */
     if (op == 2){
-    
+        
         printf("%s ", opNamesOPR[m]);
         
     }else if (op == 9){
-    
+        
         printf("%s ", opNamesSIO[m]);
         
     }else{
-    
+        
         printf("%s ", opNames[op]);
     }
     
     /* level */
     if ( (op >= 3) && (op <= 5) ){
-    
+        
         printf("%*d ", maxWidth, l);
         
     }else{
-    
+        
         printf("%*s ", maxWidth, "");
     }
     
     /* modifier */
     if ( (op != 2) && (op != 9) ){
-    
+        
         printf("%*d ", maxWidth, m);
         
     }else{
-    
+        
         printf("%*s ", maxWidth, "");
     }
     
     return;
-
+    
 } // END print instruction
 
 //=========================================================================
@@ -460,9 +461,9 @@ void print_Instruction(int op, int l, int m){
  * Pre-Conditions:  Takes in a valid stack pointer.
  * Post-Conditions: Prints the contents of the stack to the screen.
  */
- 
-void print_Stack(struct registers* reg, int* stack){
 
+void print_Stack(struct registers* reg, int* stack){
+    
     int i = 1;
     int height = 0;
     int level  = 0;
@@ -470,16 +471,16 @@ void print_Stack(struct registers* reg, int* stack){
     // for alignment purposes
     printf("   ");
     
-    // get number of stack elements in first AR record 
+    // get number of stack elements in first AR record
     height = ARheight(reg, stack, level++);
     
     while(i <= reg->sp){
-    
+        
         printf("%d ", stack[i]);
         
-        // print AR dividing bar '|' 
+        // print AR dividing bar '|'
         if( (i == height) && (i != reg->sp) ){
-        
+            
             printf("| ");
             height = i + ARheight(reg, stack, level++);
         }
@@ -487,7 +488,7 @@ void print_Stack(struct registers* reg, int* stack){
         i++;
         
     } // END while
-        
+    
     printf("\n");
     
     return;
@@ -503,14 +504,14 @@ void print_Stack(struct registers* reg, int* stack){
  */
 
 void print_Program(struct instruction* instr_array, char* filename){
-
+    
     int i = 0;
     
     printf("%s\n", filename);
     printf("PL/0 code:\n\n");
     
     while (instr_array[i].op > 0){
-    
+        
         printf("%*d  ", 3, i);
         print_Instruction(instr_array[i].op, instr_array[i].l, instr_array[i].m);
         printf(" \n");
@@ -533,14 +534,14 @@ void print_Program(struct instruction* instr_array, char* filename){
  */
 
 int ARheight(struct registers* reg, int* stack, int n){
-
+    
     int base   = reg->bp;
     int top    = reg->sp;
     int numARs = 1;
     
-    // calculate number of AR records 
+    // calculate number of AR records
     while (base > 1){
-    
+        
         top = base - 1;
         base = stack[base+1];
         numARs++;
@@ -553,7 +554,7 @@ int ARheight(struct registers* reg, int* stack, int n){
     
     // find top and bottom of n^{th} AR record from bottom of stack
     while (depth > 1){
-    
+        
         top = base - 1;
         base = stack[base+1];
         depth--;
