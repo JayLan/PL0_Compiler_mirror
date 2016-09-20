@@ -39,13 +39,15 @@ const char opNamesOPR[14][4] = {
 const char opNamesSIO [3][4] = {"OUT", "INP", "HLT" };
 
 /* structures */
-struct instruction {
+struct instruction{
+
     int op;
     int  l;
     int  m;
 };
 
-struct registers {
+struct registers{
+
     int sp;
     int bp;
     int pc;
@@ -86,26 +88,26 @@ int main(int argc, char** argv){
     // Print program before execution per assignments specs
     print_Program(instr_array, filename);
 
-
     //Begin printing and formatting for the execution output:
     printf("Execution:\n");
     printf("%*s   pc   bp   sp   stack\n", 19, "");
     printf("%*s %*d %*d %*d\n", 19, "", maxWidth, reg->pc, maxWidth, reg->bp, maxWidth, reg->sp);
 
-
     //Begin Fetch and Execution Cycles:
     fetch(instr_array, reg, stack);
 
     return 0;
-}
-
+    
+} // END main
 
 //=========================================================================
 
-//Fetch Cycle:
-//Pre-Conditions: Takes in an array of instructions, the stack pointer, and the number of lines.
-//Post-Conditions: Fetches the instruction and stores it in the instruction register,
-//                 calls execution function, and increments the program counter
+/*
+ * Fetch Cycle:
+ * Pre-Conditions: Takes in an array of instructions, the stack pointer, and the number of lines.
+ * Post-Conditions: Fetches the instruction and stores it in the instruction register,
+ *                  calls execution function, and increments the program counter
+ */
 
 void fetch(struct instruction instr_array [], struct registers* reg, int* stack){
 
@@ -121,6 +123,7 @@ void fetch(struct instruction instr_array [], struct registers* reg, int* stack)
         //FETCH CYCLE:
         //Fetch the proper instruction register
         reg->ir = instr_array[reg->pc];
+        
         //increment PC
         reg->pc++;
 
@@ -129,6 +132,7 @@ void fetch(struct instruction instr_array [], struct registers* reg, int* stack)
             halt = 1;
             
         }else{
+        
             //Print out operation, lexicographical level, and modifier:
             print_Instruction((reg->ir).op, (reg->ir).l, (reg->ir).m);
             
@@ -139,19 +143,24 @@ void fetch(struct instruction instr_array [], struct registers* reg, int* stack)
             //Display program counter, base pointer, stack pointer and stack in appropriate format:
             printf("%*d %*d %*d", maxWidth, reg->pc, maxWidth, reg->bp, maxWidth, reg->sp);
             print_Stack(reg, stack);
+            
         }
-    }
-}
+        
+    } // END while
+    
+} // END fetch
 
 //=========================================================================
 
-//Read File
-//Pre-Conditions:   Takes a filename containing PM/0 Instructions, and an empty array
-//Post-Conditions:  Reads file and stores instructions in provided array.
-//                  Returns 0 on success, 1 on failure.
+/*
+ * Read File
+ * Pre-Conditions:   Takes a filename containing PM/0 Instructions, and an empty array
+ * Post-Conditions:  Reads file and stores instructions in provided array.
+ *                   Returns 0 on success, 1 on failure.
+ */
+ 
+int readFile(char* filename, struct instruction* instr_array){
 
-int readFile(char* filename, struct instruction* instr_array)
-{
     int numInstructions = 0;
     int n0 = 0, n1 = 0, n2 = 0;
     char* mode = "r";
@@ -160,11 +169,13 @@ int readFile(char* filename, struct instruction* instr_array)
     fp = fopen(filename, mode);
 
     if (fp == NULL){
+    
         return 1;
     }
 
     /* read until eof or max instructions read */
     while ( (numInstructions < MAX_CODE_LENGTH) && !feof(fp) ){
+    
         fscanf(fp, "%d %d %d", &n0, &n1, &n2);
         instr_array[numInstructions].op = n0;
         instr_array[numInstructions].l  = n1;
@@ -182,16 +193,17 @@ int readFile(char* filename, struct instruction* instr_array)
     fclose(fp);
 
     return 0;
-}
+
+} // END read file
 
 //=========================================================================
 
-//Execution Cycle:
-//Pre-Conditions: Takes in a valid stack pointer.
-//Post-Conditions: Executes the appropriate instruction as identified by the
-//                 instruction register.
-//=========================================================================
-//=========================================================================
+/*
+ * Execution Cycle:
+ * Pre-Conditions: Takes in a valid stack pointer.
+ * Post-Conditions: Executes the appropriate instruction as identified by the
+ *                  instruction register.
+ */
 
 int execute(struct registers* reg, int* stack){
 
@@ -199,6 +211,7 @@ int execute(struct registers* reg, int* stack){
 
             //LIT: Pushes value M onto the stack:
             case 1:
+            
                 reg->sp = reg->sp + 1;
                 stack[reg->sp] = (reg->ir).m;
                 break;
@@ -306,18 +319,21 @@ int execute(struct registers* reg, int* stack){
 
             //LOD: Get value at offset M in frame L levels down and push it.
             case 3:
+            
                 reg->sp = (reg->sp) + 1;
                 stack[reg->sp] = stack[base((reg->ir).l, reg->bp, stack) + (reg->ir).m];
                 break;
 
             //STO: Pop  and insert value at offset M in frame L levels down.
             case 4:
+            
                 stack[base((reg->ir).l, reg->bp, stack) + (reg->ir).m] = stack[reg->sp];
                 reg->sp = (reg->sp) - 1;
                 break;
 
             //CAL: Call procedure at M (generates new stack frame)
             case 5:
+            
                 stack[(reg->sp)+1] = 0;
                 stack[(reg->sp)+2] = base((reg->ir).l, reg->bp, stack);
                 stack[(reg->sp)+3] = reg->bp;
@@ -328,17 +344,21 @@ int execute(struct registers* reg, int* stack){
 
             //INC: Allocate M locals on stack
             case 6:
+            
                 reg->sp = (reg->sp) + (reg->ir).m;
                 break;
 
             //JMP: Jump to M
             case 7:
+            
                 reg->pc = (reg->ir).m;
                 break;
 
             //JPC: Pop stack and jump to M if value is equal to 0
             case 8:
+            
                 if (stack[reg->sp] == 0){
+                
                     reg->pc = (reg->ir).m;
                 }
                 
@@ -350,96 +370,111 @@ int execute(struct registers* reg, int* stack){
 
                 //OUT: Pop stack and print out value
                 if ((reg->ir).m == 0){
+                
                     printf("%d", stack[reg->sp]);
                     reg->sp = (reg->sp) - 1;
                 }
 
                 //INP: Read input from user and push it
                 if ((reg->ir).m == 1){
+                
                     reg->sp = (reg->sp) + 1;
                     scanf("%d", &(stack[reg->sp]));
                 }
 
                 //HLT: Halt the machine
                 if ((reg->ir).m == 2){
+                
                     return 1;
                 }
 
-    }
+    } // END switch
+    
     return 0;
 
-}
+} // END execute
 
 //=========================================================================
 
-//Base:
-//Pre-Conditions: Takes in a lexicographical level and an integer b.
-//Post-Conditions: Computes and returns the AR base L levels down.
+/*
+ * Base:
+ * Pre-Conditions: Takes in a lexicographical level and an integer b.
+ * Post-Conditions: Computes and returns the AR base L levels down.
+ */
 
 int base(int level, int b, int* stack){
+
     while (level > 0){
+    
         b = stack[b + 2];
         level--;
     }
 
     return b;
 
-}
+} // END base
 
-//Print an individual assembly instuction
-//Pre-condition:
-//Post-condition:
-void print_Instruction(int op, int l, int m)
-{
+//=========================================================================
+
+/*
+ * Print an individual assembly instuction
+ * Pre-condition:
+ * Post-condition:
+ */
+
+void print_Instruction(int op, int l, int m){
+
     /* max width for displaying level and modifier integers*/
     int maxWidth = 4;
     
     /* operation */
-    if (op == 2)
-    {
+    if (op == 2){
+    
         printf("%s ", opNamesOPR[m]);
-    }
-    else if (op == 9)
-    {
+        
+    }else if (op == 9){
+    
         printf("%s ", opNamesSIO[m]);
-    }
-    else
-    {
+        
+    }else{
+    
         printf("%s ", opNames[op]);
     }
     
     /* level */
-    if ( (op >= 3) && (op <= 5) )
-    {
+    if ( (op >= 3) && (op <= 5) ){
+    
         printf("%*d ", maxWidth, l);
-    }
-    else
-    {
+        
+    }else{
+    
         printf("%*s ", maxWidth, "");
     }
     
     /* modifier */
-    if ( (op != 2) && (op != 9) )
-    {
+    if ( (op != 2) && (op != 9) ){
+    
         printf("%*d ", maxWidth, m);
-    }
-    else
-    {
+        
+    }else{
+    
         printf("%*s ", maxWidth, "");
     }
     
     return;
-}
 
+} // END print instruction
 
 //=========================================================================
 
-//Print Stack:
-//Pre-Conditions: Takes in a valid stack pointer.
-//Post-Conditions: Prints the contents of the stack to the screen.
+/*
+ * Print Stack:
+ * Pre-Conditions: Takes in a valid stack pointer.
+ * Post-Conditions: Prints the contents of the stack to the screen.
+ */
+ 
+void print_Stack(struct registers* reg, int* stack){
 
-void print_Stack(struct registers* reg, int* stack)
-{
     int i = 1;
     int height = 0;
     int level  = 0;
@@ -450,38 +485,44 @@ void print_Stack(struct registers* reg, int* stack)
     /* get number of stack elements in first AR record */
     height = ARheight(reg, stack, level++);
     
-    while (i <= reg->sp)
-    {
+    while(i <= reg->sp){
+    
         printf("%d ", stack[i]);
         
         /* print AR dividing bar '|' */
-        if ( (i == height) && (i != reg->sp) )
-        {
+        if( (i == height) && (i != reg->sp) ){
+        
             printf("| ");
             height = i + ARheight(reg, stack, level++);
         }
         
         i++;
-    }
-    
+        
+    } // END while
+        
     printf("\n");
     
     return;
-}
+    
+} // END print stack
+
 //=========================================================================
 
+/*
+ * Print program
+ * Pre-Conditions: Takes in a valid stack pointer.
+ * Post-Conditions: Prints the program code to the screen.
+ */
 
-//Print program
-//Pre-Conditions: Takes in a valid stack pointer.
-//Post-Conditions: Prints the program code to the screen.
-void print_Program(struct instruction* instr_array, char* filename)
-{
+void print_Program(struct instruction* instr_array, char* filename){
+
     int i = 0;
+    
     printf("%s\n", filename);
     printf("PL/0 code:\n\n");
     
-    while (instr_array[i].op > 0)
-    {
+    while (instr_array[i].op > 0){
+    
         printf("%*d  ", 3, i);
         print_Instruction(instr_array[i].op, instr_array[i].l, instr_array[i].m);
         printf(" \n");
@@ -491,16 +532,20 @@ void print_Program(struct instruction* instr_array, char* filename)
     printf("\n");
     
     return;
-}
+    
+} // END print program
 
 //=========================================================================
 
-// Calculate height of AR record
-//Pre-condition: takes in valid pointers to registers, stack
-//               and is given a valid number n of AR record for given stack
-//Post-condition: returns height of n^{th} AR record from bottom of stack
-int ARheight(struct registers* reg, int* stack, int n)
-{
+/*
+ * Calculate height of AR record
+ * Pre-condition: takes in valid pointers to registers, stack
+ *               and is given a valid number n of AR record for given stack
+ * Post-condition: returns height of n^{th} AR record from bottom of stack
+ */
+
+int ARheight(struct registers* reg, int* stack, int n){
+
     /* tracking with an array would be more computationaly efficient but */
     /* would require an additional or modified storage structure which   */
     /* maybe outside the assignment parameters                           */
@@ -510,8 +555,8 @@ int ARheight(struct registers* reg, int* stack, int n)
     int numARs = 1;
     
     /* calculate number of AR records */
-    while (base > 1)
-    {
+    while (base > 1){
+    
         top = base - 1;
         base = stack[base+1];
         numARs++;
@@ -519,17 +564,21 @@ int ARheight(struct registers* reg, int* stack, int n)
     
     base = reg->bp;
     top  = reg->sp;
+    
     int depth = numARs - n;
     
     /* find top and bottom of n^{th} AR record from bottom of stack */
-    while (depth > 1)
-    {
+    while (depth > 1){
+    
         top = base - 1;
         base = stack[base+1];
         depth--;
     }
     
     return (top - base + 1);
-}
+    
+} // END AR height
 
+
+//============================= *** EOF *** ===============================
 //=========================================================================
