@@ -6,5 +6,9 @@ Cristen Palmer
 Megan Chipman
 
 Jason Lancaster
+  - Troubleshooting, Stylistic updates, and consistency
+  - Made Git/GitHub visual training aide PDF (in webcourses) for team reference
+  - Git crib sheet of barebones commands (in webcourses)
+  - Tested code on Eustis
 
 Victoria Proetsch
