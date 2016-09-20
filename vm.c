@@ -38,44 +38,41 @@ struct registers {
     int bp;
     int pc;
     struct instruction ir;
-}
+};
 
 /*function prototypes*/
 int readFile_e(char* filename, struct instruction* program);
 void translate_Assembly (int opcode, int lexi, int modifier);
-void initialize_Stack (stack *ptr);
-void fetch (struct instruction instArray [], stack *stackPtr, int line);
-int execute (stack **stackPtr);
-int base (int level, int b, stack **stackPtr);
-void print_Stack (stack **stackPtr);
+void initialize_registers (struct registers* ptr);
+void fetch(struct instruction instr_array [], struct registers* reg, int* stack);
+int execute(struct registers* reg, int* stack);
+int base (int level, int b, int* reg);
+void print_Stack(struct registers* reg, int* stack);
 
-int main(int argc, char**argv)
+int main(int argc, char** argv)
 {
     //Declare and Initialize Variables:
-    FILE *ifp = fopen(argv[1], "r");
-    struct instruction instArray [MAX_CODE_LENGTH];
-    stack ptr;
-    int line = 0;
+    struct instruction instr_array [MAX_CODE_LENGTH];
+    struct registers* reg;
+    initialize_registers(reg);
 
-    initialize_Stack(&ptr);
+    int* stack = (int*)calloc(MAX_STACK_HEIGHT, sizeof(int));
+
 
     //Begin Print Statement for PL/0 Code:
     printf("PL/0 Code: \n\n");
 
     //Scan in input from file and store in instruction array.
     //Send scanned in data to translation function.
-    readFile_e(ifp, instArray);
+    readFile_e(argv[1], instr_array);
 
     //Begin printing and formatting for the execution output:
     printf("\n\nExecution: \n\n");
     printf("\t \t \t \t pc\t bp\t sp\t stack\n");
-    printf("\t \t \t \t %d\t %d\t %d\t \n", ptr.pc, ptr.bp, ptr.sp);
+    printf("\t \t \t \t %d\t %d\t %d\t \n", reg->pc, reg->bp, reg->sp);
 
     //Begin Fetch and Execution Cycles:
-    fetch(instArray, &ptr, line);
-
-    //Close File Pointer
-    fclose(ifp);
+    fetch(instr_array, reg, stack);
 
     return 0;
 }
@@ -192,11 +189,12 @@ void translate_Assembly(int opcode, int lexi, int modifier){
 //Pre-Conditions: Takes in a valid stack pointer.
 //Post-Conditions: Initializes the stack using numbers described in project description.
 
-void initialize_Stack (struct stack *ptr){
-
+void initialize_registers (struct registers* ptr){
+    ptr = (struct registers*)calloc(1, sizeof(struct registers));
     ptr->sp = 0;
     ptr->bp = 1;
     ptr->pc = 0;
+    //ptr->ir =
 }
 
 //=========================================================================
@@ -207,7 +205,7 @@ void initialize_Stack (struct stack *ptr){
 //Post-Conditions: Fetches the instruction and stores it in the instruction register,
 //                 calls execution function, and increments the program counter
 
-void fetch(struct instruction instArray [], struct stack *stackPtr, int line){
+void fetch(struct instruction instr_array [], struct registers* reg, int* stack){
 
     //Declare and Initialize Variables:
     int i = 0;
@@ -215,40 +213,40 @@ void fetch(struct instruction instArray [], struct stack *stackPtr, int line){
     while (!halt){
 
         //If-Else statement ensures proper formatting in output.
-        if (stackPtr->pc < 10)
-            printf(" %d\t", stackPtr->pc);
+        if (reg->pc < 10)
+            printf(" %d\t", reg->pc);
         else
-            printf("%d\t", stackPtr->pc);
+            printf("%d\t", reg->pc);
 
 
         //FETCH CYCLE:
         //Fetch the proper instruction register
-        stackPtr->ir = instArray[stackPtr->pc];
+        reg->ir = instr_array[reg->pc];
         //increment PC
-        stackPtr->pc++;
+        reg->pc++;
 
         //Check that PC is inbounds
-        if (stackPtr->pc > MAX_CODE_LENGTH)
+        if (reg->pc > MAX_CODE_LENGTH)
             halt = 1;
 
         else{
             //Print out operation, lexicographical level, and modifier:
-            translate_Assembly((stackPtr->ir).op, (stackPtr->ir).l, (stackPtr->ir).m);
+            translate_Assembly((reg->ir).op, (reg->ir).l, (reg->ir).m);
 
             //EXECUTION CYCLE:
             //Use the opcode to determine which operation to perform, then execute accordingly:
-            halt = execute(&stackPtr);
+            halt = execute(reg, stack);
 
             //Display program counter, base pointer, stack pointer and stack in appropriate format:
-            printf("\t %d\t %d\t %d\t", stackPtr->pc, stackPtr->bp, stackPtr->sp);
-            print_Stack(&stackPtr);
+            printf("\t %d\t %d\t %d\t", reg->pc, reg->bp, reg->sp);
+            print_Stack(reg, stack);
         }
     }
 }
 
 /* read pl0 code from text input file                   */
 /* returns 0 on success, 1 on failure (file not opened) */
-int readFile_e(char* filename, struct instruction* instArray)
+int readFile_e(char* filename, struct instruction* instr_array)
 {
     int numInstructions = 0;
     int n0 = 0, n1 = 0, n2 = 0;
@@ -266,17 +264,17 @@ int readFile_e(char* filename, struct instruction* instArray)
     while ( (numInstructions < MAX_CODE_LENGTH) && !feof(fp) )
     {
         fscanf(fp, "%d %d %d", &n0, &n1, &n2);
-        instArray[numInstructions].op = n0;
-        instArray[numInstructions].l  = n1;
-        instArray[numInstructions].m  = n2;
+        instr_array[numInstructions].op = n0;
+        instr_array[numInstructions].l  = n1;
+        instr_array[numInstructions].m  = n2;
         numInstructions++;
     }
 
     /* mark end of program code */
     numInstructions--;
-    program[numInstructions].op = 0;
-    program[numInstructions].l  = 0;
-    program[numInstructions].m  = 0;
+    instr_array[numInstructions].op = 0;
+    instr_array[numInstructions].l  = 0;
+    instr_array[numInstructions].m  = 0;
 
     /* close file */
     fclose(fp);
@@ -293,14 +291,14 @@ int readFile_e(char* filename, struct instruction* instArray)
 //=========================================================================
 //=========================================================================
 
-int execute(struct stack **stackPtr){
+int execute(struct registers* reg, int* stack){ //***************************
 
-    switch(((*stackPtr)->ir).op) {
+    switch((reg->ir).op) {
 
             //LIT: Pushes value M onto the stack:
             case 1:
-                (*stackPtr)->sp = (*stackPtr)->sp + 1;
-                (*stackPtr)->items[(*stackPtr)->sp] = ((*stackPtr)->ir).m;
+                reg->sp = reg->sp + 1;
+                stack[reg->sp] = (reg->ir).m; //***************** change reg->items to stack
                 break;
 
             //OPR: Performs an arithmetic or logical operation as defined by
@@ -308,158 +306,158 @@ int execute(struct stack **stackPtr){
             case 2:
 
                 //RET
-                if (((*stackPtr)->ir).m == 0){
-                    (*stackPtr)->sp = ((*stackPtr)->bp) - 1;
-                    (*stackPtr)->pc = (*stackPtr)->items[((*stackPtr)->sp) + 4];
-                    (*stackPtr)->bp = (*stackPtr)->items[((*stackPtr)->sp) + 3];
+                if ((reg->ir).m == 0){
+                    reg->sp = (reg->bp) - 1;
+                    reg->pc = stack[(reg->sp) + 4];
+                    reg->bp = stack[(reg->sp) + 3];
                     break;
                 }
 
                 //NEG
-                if (((*stackPtr)->ir).m == 1){
-                    (*stackPtr)->items[(*stackPtr)->sp] = -((*stackPtr)->items[(*stackPtr)->sp]);
+                if ((reg->ir).m == 1){
+                    stack[reg->sp] = -(stack[reg->sp]);
                     break;
                 }
 
                 //ADD
-                if (((*stackPtr)->ir).m == 2){
-                    (*stackPtr)->sp = ((*stackPtr)->sp) - 1;
-                    (*stackPtr)->items[(*stackPtr)->sp] = (*stackPtr)->items[(*stackPtr)->sp] + (*stackPtr)->items[((*stackPtr)->sp) + 1];
+                if ((reg->ir).m == 2){
+                    reg->sp = (reg->sp) - 1;
+                    stack[reg->sp] = stack[reg->sp] + stack[(reg->sp) + 1];
                     break;
                 }
 
                 //SUB
-                if (((*stackPtr)->ir).m == 3){
-                    (*stackPtr)->sp = ((*stackPtr)->sp) - 1;
-                    (*stackPtr)->items[(*stackPtr)->sp] = (*stackPtr)->items[(*stackPtr)->sp] - (*stackPtr)->items[((*stackPtr)->sp) + 1];
+                if ((reg->ir).m == 3){
+                    reg->sp = (reg->sp) - 1;
+                    stack[reg->sp] = stack[reg->sp] - stack[(reg->sp) + 1];
                     break;
                 }
 
                 //MUL
-                if (((*stackPtr)->ir).m == 4){
-                    (*stackPtr)->sp = ((*stackPtr)->sp) - 1;
-                    (*stackPtr)->items[(*stackPtr)->sp] = (*stackPtr)->items[(*stackPtr)->sp] * (*stackPtr)->items[((*stackPtr)->sp) + 1];
+                if ((reg->ir).m == 4){
+                    reg->sp = (reg->sp) - 1;
+                    stack[reg->sp] = stack[reg->sp] * stack[(reg->sp) + 1];
                     break;
                 }
 
                 //DIV
-                if (((*stackPtr)->ir).m == 5){
-                    (*stackPtr)->sp = ((*stackPtr)->sp) - 1;
-                    (*stackPtr)->items[(*stackPtr)->sp] = (*stackPtr)->items[(*stackPtr)->sp] / (*stackPtr)->items[((*stackPtr)->sp) + 1];
+                if ((reg->ir).m == 5){
+                    reg->sp = (reg->sp) - 1;
+                    stack[reg->sp] = stack[reg->sp] / stack[(reg->sp) + 1];
                     break;
                 }
 
                 //ODD
-                if (((*stackPtr)->ir).m == 6){
-                    (*stackPtr)->items[(*stackPtr)->sp] = (*stackPtr)->items[(*stackPtr)->sp] % 2;
+                if ((reg->ir).m == 6){
+                    stack[reg->sp] = stack[reg->sp] % 2;
                     break;
                 }
 
                 //MOD
-                if (((*stackPtr)->ir).m == 7){
-                    (*stackPtr)->sp = ((*stackPtr)->sp) - 1;
-                    (*stackPtr)->items[(*stackPtr)->sp] = (*stackPtr)->items[(*stackPtr)->sp] % (*stackPtr)->items[((*stackPtr)->sp) + 1];
+                if ((reg->ir).m == 7){
+                    reg->sp = (reg->sp) - 1;
+                    stack[reg->sp] = stack[reg->sp] % stack[(reg->sp) + 1];
                     break;
                 }
 
                 //EQL
-                if (((*stackPtr)->ir).m == 8){
-                    (*stackPtr)->sp = ((*stackPtr)->sp) - 1;
-                    (*stackPtr)->items[((*stackPtr)->sp)] = (*stackPtr)->items[(*stackPtr)->sp] == (*stackPtr)->items[((*stackPtr)->sp) + 1];
+                if ((reg->ir).m == 8){
+                    reg->sp = (reg->sp) - 1;
+                    stack[(reg->sp)] = stack[reg->sp] == stack[(reg->sp) + 1];
                     break;
                 }
 
                 //NEQ
-                if (((*stackPtr)->ir).m == 9){
-                    (*stackPtr)->sp = ((*stackPtr)->sp) - 1;
-                    (*stackPtr)->items[(*stackPtr)->sp] = (*stackPtr)->items[(*stackPtr)->sp] != (*stackPtr)->items[((*stackPtr)->sp) + 1];
+                if ((reg->ir).m == 9){
+                    reg->sp = (reg->sp) - 1;
+                    stack[reg->sp] = stack[reg->sp] != stack[(reg->sp) + 1];
                     break;
                 }
 
                 //LSS
-                if (((*stackPtr)->ir).m == 10){
-                    (*stackPtr)->sp = ((*stackPtr)->sp) - 1;
-                    (*stackPtr)->items[(*stackPtr)->sp] = (*stackPtr)->items[(*stackPtr)->sp] < (*stackPtr)->items[((*stackPtr)->sp) + 1];
+                if ((reg->ir).m == 10){
+                    reg->sp = (reg->sp) - 1;
+                    stack[reg->sp] = stack[reg->sp] < stack[(reg->sp) + 1];
                     break;
                 }
 
                 //LEQ
-                if (((*stackPtr)->ir).m == 11){
-                    (*stackPtr)->sp = ((*stackPtr)->sp) - 1;
-                    (*stackPtr)->items[(*stackPtr)->sp] = (*stackPtr)->items[(*stackPtr)->sp] <= (*stackPtr)->items[((*stackPtr)->sp) + 1];
+                if ((reg->ir).m == 11){
+                    reg->sp = (reg->sp) - 1;
+                    stack[reg->sp] = stack[reg->sp] <= stack[(reg->sp) + 1];
                     break;
                 }
 
                 //GTR
-                if (((*stackPtr)->ir).m == 12){
-                    (*stackPtr)->sp = ((*stackPtr)->sp) - 1;
-                    (*stackPtr)->items[(*stackPtr)->sp] = (*stackPtr)->items[(*stackPtr)->sp] > (*stackPtr)->items[((*stackPtr)->sp) + 1];
+                if ((reg->ir).m == 12){
+                    reg->sp = (reg->sp) - 1;
+                    stack[reg->sp] = stack[reg->sp] > stack[(reg->sp) + 1];
                     break;
                 }
 
                 //GEQ
-                if (((*stackPtr)->ir).m == 13){
-                    (*stackPtr)->sp = ((*stackPtr)->sp) - 1;
-                    (*stackPtr)->items[(*stackPtr)->sp] = (*stackPtr)->items[(*stackPtr)->sp] >= (*stackPtr)->items[((*stackPtr)->sp) + 1];
+                if ((reg->ir).m == 13){
+                    reg->sp = (reg->sp) - 1;
+                    stack[reg->sp] = stack[reg->sp] >= stack[(reg->sp) + 1];
                     break;
                 }
 
             //LOD: Get value at offset M in frame L levels down and push it.
             case 3:
-                (*stackPtr)->sp = ((*stackPtr)->sp) + 1;
-                (*stackPtr)->items[(*stackPtr)->sp] = (*stackPtr)->items[base(((*stackPtr)->ir).l, (*stackPtr)->bp, stackPtr) + ((*stackPtr)->ir).m];
+                reg->sp = (reg->sp) + 1;
+                stack[reg->sp] = stack[base((reg->ir).l, reg->bp, stack) + (reg->ir).m];
                 break;
 
-            //STO: Pop stack and insert value at offset M in frame L levels down.
+            //STO: Pop  and insert value at offset M in frame L levels down.
             case 4:
-                (*stackPtr)->items[base(((*stackPtr)->ir).l, (*stackPtr)->bp, stackPtr) + ((*stackPtr)->ir).m] = (*stackPtr)->items[(*stackPtr)->sp];
-                (*stackPtr)->sp = ((*stackPtr)->sp) - 1;
+                stack[base((reg->ir).l, reg->bp, stack) + (reg->ir).m] = stack[reg->sp];
+                reg->sp = (reg->sp) - 1;
                 break;
 
             //CAL: Call procedure at M (generates new stack frame)
             case 5:
-                (*stackPtr)->items[((*stackPtr)->sp)+1] = 0;
-                (*stackPtr)->items[((*stackPtr)->sp)+2] = base(((*stackPtr)->ir).l, (*stackPtr)->bp, stackPtr);
-                (*stackPtr)->items[((*stackPtr)->sp)+3] = (*stackPtr)->bp;
-                (*stackPtr)->items[((*stackPtr)->sp)+4] = (*stackPtr)->pc;
-                (*stackPtr)->bp = ((*stackPtr)->sp) + 1;
-                (*stackPtr)->pc = ((*stackPtr)->ir).m;
+                stack[(reg->sp)+1] = 0;
+                stack[(reg->sp)+2] = base((reg->ir).l, reg->bp, stack);
+                stack[(reg->sp)+3] = reg->bp;
+                stack[(reg->sp)+4] = reg->pc;
+                reg->bp = (reg->sp) + 1;
+                reg->pc = (reg->ir).m;
                 break;
 
             //INC: Allocate M locals on stack
             case 6:
-                (*stackPtr)->sp = ((*stackPtr)->sp) + ((*stackPtr)->ir).m;
+                reg->sp = (reg->sp) + (reg->ir).m;
                 break;
 
             //JMP: Jump to M
             case 7:
-                (*stackPtr)->pc = ((*stackPtr)->ir).m;
+                reg->pc = (reg->ir).m;
                 break;
 
             //JPC: Pop stack and jump to M if value is equal to 0
             case 8:
-                if ((*stackPtr)->items[(*stackPtr)->sp] == 0)
-                    (*stackPtr)->pc = ((*stackPtr)->ir).m;
-                (*stackPtr)->sp = ((*stackPtr)->sp) - 1;
+                if (stack[reg->sp] == 0)
+                    reg->pc = (reg->ir).m;
+                reg->sp = (reg->sp) - 1;
                 break;
 
             //SIO:
             case 9:
 
                 //OUT: Pop stack and print out value
-                if (((*stackPtr)->ir).m == 0){
-                    printf("%d", (*stackPtr)->items[(*stackPtr)->sp]);
-                    (*stackPtr)->sp = ((*stackPtr)->sp) - 1;
+                if ((reg->ir).m == 0){
+                    printf("%d", stack[reg->sp]);
+                    reg->sp = (reg->sp) - 1;
                 }
 
                 //INP: Read input from user and push it
-                if (((*stackPtr)->ir).m == 1){
-                    (*stackPtr)->sp = ((*stackPtr)->sp) + 1;
-                    scanf("%d", &((*stackPtr)->items[(*stackPtr)->sp]));
+                if ((reg->ir).m == 1){
+                    reg->sp = (reg->sp) + 1;
+                    scanf("%d", &(stack[reg->sp]));
                 }
 
                 //HLT: Halt the machine
-                if (((*stackPtr)->ir).m == 2){
+                if ((reg->ir).m == 2){
                     printf("\t\t");
                     return 1;
                 }
@@ -476,9 +474,9 @@ int execute(struct stack **stackPtr){
 //Pre-Conditions: Takes in a lexicographical level and an integer b.
 //Post-Conditions: Computes and returns the AR base L levels down.
 
-int base(int level, int b, struct stack **stackPtr){
+int base(int level, int b, int* stack){
     while (level > 0){
-        b = (*stackPtr)->items[b + 2];
+        b = stack[b + 2];
         level--;
     }
 
@@ -493,17 +491,17 @@ int base(int level, int b, struct stack **stackPtr){
 //Pre-Conditions: Takes in a valid stack pointer.
 //Post-Conditions: Prints the contents of the stack to the screen.
 
-void print_Stack(struct stack **stackPtr){
+void print_Stack(struct registers* reg, int* stack){
 
     //Declare and Initialize Variables:
     int i;
 
-    for (i = 1; i <= (*stackPtr)->sp; i++){
+    for (i = 1; i <= reg->sp; i++){
 
-        if (i == (*stackPtr)->bp && i > 3)
+        if (i == reg->bp && i > 3)
             printf("|");
 
-        printf("%d ", (*stackPtr)->items[i]);
+        printf("%d ", stack[i]);
 
     }
 
