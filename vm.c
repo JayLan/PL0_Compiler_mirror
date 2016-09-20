@@ -42,22 +42,22 @@ struct registers {
     struct instruction ir;
 };
 
-/*function prototypes*/
+/* function prototypes */
 int readFile(char* filename, struct instruction* program);
 int translate_Assembly (int opcode, int lexi, int modifier);
-void fetch(struct instruction instr_array [], struct registers* reg, int* stack);
 int execute(struct registers* reg, int* stack);
 int base (int level, int b, int* reg);
+void fetch(struct instruction instr_array [], struct registers* reg, int* stack);
 void print_Stack(struct registers* reg, int* stack);
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv){
+
     //Declare and Initialize Variables:
     struct instruction instr_array [MAX_CODE_LENGTH];
     struct registers* reg = (struct registers*)calloc(1, sizeof(struct registers));
-    reg->sp = 0;
-    reg->bp = 1;
-    reg->pc = 0;
+		reg->sp = 0;
+		reg->bp = 1;
+		reg->pc = 0;
     int* stack = (int*)calloc(MAX_STACK_HEIGHT, sizeof(int));
 
     //Begin Print Statement for PL/0 Code:
@@ -104,48 +104,61 @@ int translate_Assembly(int opcode, int lexi, int modifier){
 
         //OPR
         case 2:
-                if(modifier == 0)
+                if(modifier == 0){
                     printf("RET\t  \t %d", modifier);
+                }
 
-                if(modifier == 1)
+                if(modifier == 1){
                     printf("NEG\t  \t %d", modifier);
-
-                if(modifier == 2)
+				}
+				
+                if(modifier == 2){
                     printf("ADD\t  \t %d", modifier);
-
-                if(modifier == 3)
+				}
+				
+                if(modifier == 3){
                     printf("SUB\t  \t %d", modifier);
-
-                if(modifier == 4)
+				}
+				
+                if(modifier == 4){
                     printf("MUL\t  \t %d", modifier);
-
-                if(modifier == 5)
+				}
+				
+                if(modifier == 5){
                     printf("DIV\t  \t %d", modifier);
-
-                if(modifier == 6)
+				}
+				
+                if(modifier == 6){
                     printf("ODD\t  \t %d", modifier);
-
-                if(modifier == 7)
+				}
+				
+                if(modifier == 7){
                     printf("MOD\t  \t %d", modifier);
-
-                if(modifier == 8)
+				}
+				
+                if(modifier == 8){
                     printf("EQL\t  \t %d", modifier);
-
-                if(modifier == 9)
+				}
+				
+                if(modifier == 9){
                     printf("NEQ\t  \t %d", modifier);
-
-                if(modifier == 10)
+				}
+				
+                if(modifier == 10){
                     printf("LSS\t  \t %d", modifier);
-
-                if(modifier == 11)
+				}
+				
+                if(modifier == 11){
                     printf("LEQ\t  \t %d", modifier);
-
-                if(modifier == 12)
+				}
+				
+                if(modifier == 12){
                     printf("GTR\t  \t %d", modifier);
-
-                if(modifier == 13)
+				}
+				
+                if(modifier == 13){
                     printf("GEQ\t  \t %d", modifier);
-
+				}
                 break;
 
         //LOD
@@ -180,12 +193,17 @@ int translate_Assembly(int opcode, int lexi, int modifier){
 
         //SIO
         case 9:
-                if (modifier == 0)
+                if (modifier == 0){
                     printf("OUT\t \t %d", modifier);
-                if (modifier == 1)
+                }
+                
+                if (modifier == 1){
                     printf("INP\t \t %d", modifier);
-                if (modifier == 2)
+                }
+                
+                if (modifier == 2){
                     printf("HLT");
+                }    
                 break;
 
         //MISSING INSTRUCTION
@@ -197,7 +215,6 @@ int translate_Assembly(int opcode, int lexi, int modifier){
 }
 
 //=========================================================================
-//=========================================================================
 
 //Fetch Cycle:
 //Pre-Conditions: Takes in an array of instructions, the stack pointer, and the number of lines.
@@ -206,18 +223,18 @@ int translate_Assembly(int opcode, int lexi, int modifier){
 
 void fetch(struct instruction instr_array [], struct registers* reg, int* stack){
 
-
     //Declare and Initialize Variables:
     int i = 0;
     int halt = 0;
     while (!halt){
 
         //If-Else statement ensures proper formatting in output.
-        if (reg->pc < 10)
+        if (reg->pc < 10){
             printf(" %d\t", reg->pc);
-        else
+            
+        }else{
             printf("%d\t", reg->pc);
-
+		}
 
         //FETCH CYCLE:
         //Fetch the proper instruction register
@@ -228,9 +245,8 @@ void fetch(struct instruction instr_array [], struct registers* reg, int* stack)
         //Check that PC is in-bounds
         if (reg->pc > MAX_CODE_LENGTH){
             halt = 1;
-        }
-
-        else{
+            
+        }else{
             //Print out operation, lexicographical level, and modifier:
             halt = translate_Assembly((reg->ir).op, (reg->ir).l, (reg->ir).m);
 
@@ -258,13 +274,12 @@ int readFile(char* filename, struct instruction* instr_array)
 {
     int numInstructions = 0;
     int n0 = 0, n1 = 0, n2 = 0;
-    FILE *fp;
-    char *mode = "r";
+    char* mode = "r";
+    FILE* fp;
 
     fp = fopen(filename, mode);
 
-    if (fp == NULL)
-    {
+    if (fp == NULL){
         return 1;
     }
 
@@ -273,8 +288,7 @@ int readFile(char* filename, struct instruction* instr_array)
     #endif
 
     /* read until eof or max instructions read */
-    while ( (numInstructions < MAX_CODE_LENGTH) && !feof(fp) )
-    {
+    while ( (numInstructions < MAX_CODE_LENGTH) && !feof(fp) ){
         fscanf(fp, "%d %d %d", &n0, &n1, &n2);
         instr_array[numInstructions].op = n0;
         instr_array[numInstructions].l  = n1;
@@ -305,7 +319,7 @@ int readFile(char* filename, struct instruction* instr_array)
 
 int execute(struct registers* reg, int* stack){
 
-    switch((reg->ir).op) {
+    switch((reg->ir).op){
 
             //LIT: Pushes value M onto the stack:
             case 1:
@@ -448,8 +462,10 @@ int execute(struct registers* reg, int* stack){
 
             //JPC: Pop stack and jump to M if value is equal to 0
             case 8:
-                if (stack[reg->sp] == 0)
+                if (stack[reg->sp] == 0){
                     reg->pc = (reg->ir).m;
+                }
+                
                 reg->sp = (reg->sp) - 1;
                 break;
 
@@ -480,7 +496,6 @@ int execute(struct registers* reg, int* stack){
 }
 
 //=========================================================================
-//=========================================================================
 
 //Base:
 //Pre-Conditions: Takes in a lexicographical level and an integer b.
@@ -497,7 +512,6 @@ int base(int level, int b, int* stack){
 }
 
 //=========================================================================
-//=========================================================================
 
 //Print Stack:
 //Pre-Conditions: Takes in a valid stack pointer.
@@ -510,8 +524,9 @@ void print_Stack(struct registers* reg, int* stack){
 
     for (i = 1; i <= reg->sp; i++){
 
-        if (i == reg->bp && i > 3)
+        if (i == reg->bp && i > 3){
             printf("|");
+        }
 
         printf("%d ", stack[i]);
 
