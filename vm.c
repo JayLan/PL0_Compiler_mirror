@@ -1,14 +1,14 @@
 //|===========================================================================
 //|  Team Name: Compiler Builders 33
 //|
-//|  Programmer(s):
+//|  Programmers:
 //|		Cristen Palmer
 //|		Megan Chipman
 //|		Jason Lancaster
 //|		Victoria Proetsch
 //|
 //|  Course:	COP3402, Fall 2016
-//|  Date:
+//|  Date:      Sept 22, 2016
 //|---------------------------------------------------------------------------
 //|  Language:	C
 //|  File:		vm.c
@@ -20,6 +20,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+//#define DEBUG
 
 /* constants */
 const int MAX_STACK_HEIGHT = 2000;
@@ -41,9 +43,8 @@ struct registers {
 };
 
 /*function prototypes*/
-int readFile_e(char* filename, struct instruction* program);
-void translate_Assembly (int opcode, int lexi, int modifier);
-void initialize_registers (struct registers* ptr);
+int readFile(char* filename, struct instruction* program);
+int translate_Assembly (int opcode, int lexi, int modifier);
 void fetch(struct instruction instr_array [], struct registers* reg, int* stack);
 int execute(struct registers* reg, int* stack);
 int base (int level, int b, int* reg);
@@ -53,18 +54,25 @@ int main(int argc, char** argv)
 {
     //Declare and Initialize Variables:
     struct instruction instr_array [MAX_CODE_LENGTH];
-    struct registers* reg;
-    initialize_registers(reg);
-
+    struct registers* reg = (struct registers*)calloc(1, sizeof(struct registers));
+    reg->sp = 0;
+    reg->bp = 1;
+    reg->pc = 0;
     int* stack = (int*)calloc(MAX_STACK_HEIGHT, sizeof(int));
-
 
     //Begin Print Statement for PL/0 Code:
     printf("PL/0 Code: \n\n");
 
     //Scan in input from file and store in instruction array.
     //Send scanned in data to translation function.
-    readFile_e(argv[1], instr_array);
+    if ( readFile(argv[1], instr_array) ){
+        printf("couldn't open file %s.\n", argv[1]);
+        return 1;
+    }
+
+    #ifdef DEBUG
+        printf("DEBUG: done reading file\n");
+    #endif
 
     //Begin printing and formatting for the execution output:
     printf("\n\nExecution: \n\n");
@@ -84,7 +92,7 @@ int main(int argc, char** argv)
 //                and modifier values for a line of PL/0 code.
 //Post-Conditions: Displays the assembly version of the PL/0 line of code.
 
-void translate_Assembly(int opcode, int lexi, int modifier){
+int translate_Assembly(int opcode, int lexi, int modifier){
 
     //Implement switch statements based on opcode for correct print out.
     switch (opcode) {
@@ -179,22 +187,13 @@ void translate_Assembly(int opcode, int lexi, int modifier){
                 if (modifier == 2)
                     printf("HLT");
                 break;
+
+        //MISSING INSTRUCTION
+        default:
+                printf("HALTING");
+                return 1;
     }
-
-}
-
-//=========================================================================
-//=========================================================================
-
-//Pre-Conditions: Takes in a valid stack pointer.
-//Post-Conditions: Initializes the stack using numbers described in project description.
-
-void initialize_registers (struct registers* ptr){
-    ptr = (struct registers*)calloc(1, sizeof(struct registers));
-    ptr->sp = 0;
-    ptr->bp = 1;
-    ptr->pc = 0;
-    //ptr->ir =
+    return 0;
 }
 
 //=========================================================================
@@ -206,6 +205,7 @@ void initialize_registers (struct registers* ptr){
 //                 calls execution function, and increments the program counter
 
 void fetch(struct instruction instr_array [], struct registers* reg, int* stack){
+
 
     //Declare and Initialize Variables:
     int i = 0;
@@ -225,28 +225,36 @@ void fetch(struct instruction instr_array [], struct registers* reg, int* stack)
         //increment PC
         reg->pc++;
 
-        //Check that PC is inbounds
-        if (reg->pc > MAX_CODE_LENGTH)
+        //Check that PC is in-bounds
+        if (reg->pc > MAX_CODE_LENGTH){
             halt = 1;
+        }
 
         else{
             //Print out operation, lexicographical level, and modifier:
-            translate_Assembly((reg->ir).op, (reg->ir).l, (reg->ir).m);
+            halt = translate_Assembly((reg->ir).op, (reg->ir).l, (reg->ir).m);
 
             //EXECUTION CYCLE:
             //Use the opcode to determine which operation to perform, then execute accordingly:
-            halt = execute(reg, stack);
+            halt = halt | execute(reg, stack);
 
             //Display program counter, base pointer, stack pointer and stack in appropriate format:
-            printf("\t %d\t %d\t %d\t", reg->pc, reg->bp, reg->sp);
-            print_Stack(reg, stack);
+            if (!halt){
+                printf("\t %d\t %d\t %d\t", reg->pc, reg->bp, reg->sp);
+                print_Stack(reg, stack);
+            }
         }
     }
 }
 
-/* read pl0 code from text input file                   */
-/* returns 0 on success, 1 on failure (file not opened) */
-int readFile_e(char* filename, struct instruction* instr_array)
+//=========================================================================
+
+//Read File
+//Pre-Conditions:   Takes a filename containing PM/0 Instructions, and an empty array
+//Post-Conditions:  Reads file and stores instructions in provided array.
+//                  Returns 0 on success, 1 on failure.
+
+int readFile(char* filename, struct instruction* instr_array)
 {
     int numInstructions = 0;
     int n0 = 0, n1 = 0, n2 = 0;
@@ -259,6 +267,10 @@ int readFile_e(char* filename, struct instruction* instr_array)
     {
         return 1;
     }
+
+    #ifdef DEBUG
+        printf("reading file");
+    #endif
 
     /* read until eof or max instructions read */
     while ( (numInstructions < MAX_CODE_LENGTH) && !feof(fp) )
@@ -291,14 +303,14 @@ int readFile_e(char* filename, struct instruction* instr_array)
 //=========================================================================
 //=========================================================================
 
-int execute(struct registers* reg, int* stack){ //***************************
+int execute(struct registers* reg, int* stack){
 
     switch((reg->ir).op) {
 
             //LIT: Pushes value M onto the stack:
             case 1:
                 reg->sp = reg->sp + 1;
-                stack[reg->sp] = (reg->ir).m; //***************** change reg->items to stack
+                stack[reg->sp] = (reg->ir).m;
                 break;
 
             //OPR: Performs an arithmetic or logical operation as defined by
