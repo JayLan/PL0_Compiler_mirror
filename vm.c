@@ -83,7 +83,8 @@ int main(int argc, char** argv){
     fetch(instr_array, reg, stack);
 
     return 0;
-}
+    
+} // END main
 
 //=========================================================================
 
@@ -95,7 +96,7 @@ int main(int argc, char** argv){
 int translate_Assembly(int opcode, int lexi, int modifier){
 
     //Implement switch statements based on opcode for correct print out.
-    switch (opcode) {
+    switch (opcode){
 
         //LIT
         case 1:
@@ -105,59 +106,59 @@ int translate_Assembly(int opcode, int lexi, int modifier){
         //OPR
         case 2:
                 if(modifier == 0){
-                    printf("RET\t  \t %d", modifier);
+                    printf("RET\t  \t %d", modifier); // RET
                 }
 
                 if(modifier == 1){
-                    printf("NEG\t  \t %d", modifier);
+                    printf("NEG\t  \t %d", modifier); // NEG
 				}
 				
                 if(modifier == 2){
-                    printf("ADD\t  \t %d", modifier);
+                    printf("ADD\t  \t %d", modifier); // ADD
 				}
 				
                 if(modifier == 3){
-                    printf("SUB\t  \t %d", modifier);
+                    printf("SUB\t  \t %d", modifier); // SUB
 				}
 				
                 if(modifier == 4){
-                    printf("MUL\t  \t %d", modifier);
+                    printf("MUL\t  \t %d", modifier); // MUL
 				}
 				
                 if(modifier == 5){
-                    printf("DIV\t  \t %d", modifier);
+                    printf("DIV\t  \t %d", modifier); // DIV
 				}
 				
                 if(modifier == 6){
-                    printf("ODD\t  \t %d", modifier);
+                    printf("ODD\t  \t %d", modifier); // ODD
 				}
 				
                 if(modifier == 7){
-                    printf("MOD\t  \t %d", modifier);
+                    printf("MOD\t  \t %d", modifier); // MOD
 				}
 				
                 if(modifier == 8){
-                    printf("EQL\t  \t %d", modifier);
+                    printf("EQL\t  \t %d", modifier); // EQL
 				}
 				
                 if(modifier == 9){
-                    printf("NEQ\t  \t %d", modifier);
+                    printf("NEQ\t  \t %d", modifier); // NEQ
 				}
 				
                 if(modifier == 10){
-                    printf("LSS\t  \t %d", modifier);
+                    printf("LSS\t  \t %d", modifier); // LSS
 				}
 				
                 if(modifier == 11){
-                    printf("LEQ\t  \t %d", modifier);
+                    printf("LEQ\t  \t %d", modifier); // LEQ
 				}
 				
                 if(modifier == 12){
-                    printf("GTR\t  \t %d", modifier);
+                    printf("GTR\t  \t %d", modifier); // GTR
 				}
 				
                 if(modifier == 13){
-                    printf("GEQ\t  \t %d", modifier);
+                    printf("GEQ\t  \t %d", modifier); // GEQ
 				}
                 break;
 
@@ -212,7 +213,8 @@ int translate_Assembly(int opcode, int lexi, int modifier){
                 return 1;
     }
     return 0;
-}
+    
+} // END translate assembly
 
 //=========================================================================
 
@@ -226,6 +228,7 @@ void fetch(struct instruction instr_array [], struct registers* reg, int* stack)
     //Declare and Initialize Variables:
     int i = 0;
     int halt = 0;
+    
     while (!halt){
 
         //If-Else statement ensures proper formatting in output.
@@ -239,6 +242,7 @@ void fetch(struct instruction instr_array [], struct registers* reg, int* stack)
         //FETCH CYCLE:
         //Fetch the proper instruction register
         reg->ir = instr_array[reg->pc];
+        
         //increment PC
         reg->pc++;
 
@@ -259,9 +263,12 @@ void fetch(struct instruction instr_array [], struct registers* reg, int* stack)
                 printf("\t %d\t %d\t %d\t", reg->pc, reg->bp, reg->sp);
                 print_Stack(reg, stack);
             }
-        }
-    }
-}
+            
+        } 
+        
+    } // END while
+    
+} // END Fetch
 
 //=========================================================================
 
@@ -306,7 +313,8 @@ int readFile(char* filename, struct instruction* instr_array)
     fclose(fp);
 
     return 0;
-}
+    
+} // END read file
 
 //=========================================================================
 
@@ -314,8 +322,6 @@ int readFile(char* filename, struct instruction* instr_array)
 //Pre-Conditions: Takes in a valid stack pointer.
 //Post-Conditions: Executes the appropriate instruction as identified by the
 //                 instruction register.
-//=========================================================================
-//=========================================================================
 
 int execute(struct registers* reg, int* stack){
 
@@ -490,10 +496,11 @@ int execute(struct registers* reg, int* stack){
                     return 1;
                 }
 
-    }
+    } // END switch case
+    
     return 0;
 
-}
+} // END execute
 
 //=========================================================================
 
@@ -509,7 +516,7 @@ int base(int level, int b, int* stack){
 
     return b;
 
-}
+} // END base
 
 //=========================================================================
 
@@ -530,12 +537,12 @@ void print_Stack(struct registers* reg, int* stack){
 
         printf("%d ", stack[i]);
 
-    }
-
+    } // END for
+    
     printf("\n");
 
-}
+} // END print stack
 
-//=========================================================================
+//=========================== *** EOF *** =================================
 //=========================================================================
 
