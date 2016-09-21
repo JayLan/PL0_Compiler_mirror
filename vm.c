@@ -151,7 +151,7 @@ int base(int level, int b, int* stack)
 
 void fetch(struct instruction instr_array [], struct registers* reg, int* stack){
     
-    int halt=0
+    int halt=0;
     int maxWidth=4;
     
     while(!halt)
@@ -516,7 +516,7 @@ void print_Stack(struct registers* reg, int* stack)
 
 int readFile(char* filename, struct instruction* instr_array)
 {
-    int numInstructions = 0, 
+    int numInstructions = 0; 
     int n0 = 0;
     int n1 = 0;
     int n2 = 0;
