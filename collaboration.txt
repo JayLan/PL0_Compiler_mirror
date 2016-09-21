@@ -2,7 +2,9 @@ Contributions of Compiler Builders 33
 -------------------------------------
 
 Cristen Palmer
-
+  - wrote and tested a fully working version of program
+  - debugging after Megan's code and my version were merged
+  
 Megan Chipman
 
 Jason Lancaster
