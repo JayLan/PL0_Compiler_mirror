@@ -37,15 +37,15 @@ const char opNamesOPR[14][4] = {
 const char opNamesSIO [3][4] = {"OUT", "INP", "HLT" };
 
 // structures
-struct instruction{
-    
+struct instruction
+{
     int op;
     int  l;
     int  m;
 };
 
-struct registers{
-    
+struct registers
+{
     int sp;
     int bp;
     int pc;
@@ -55,28 +55,28 @@ struct registers{
 // function prototypes
 int  ARheight(struct registers* reg, int* stack, int n);
 int  base (int level, int b, int* reg);
+int  readFile(char* filename, struct instruction* program);
 int  execute(struct registers* reg, int* stack);
 void fetch(struct instruction instr_array [], struct registers* reg, int* stack);
 void initializeRegisters(struct registers* reg);
 void print_Instruction(int op, int l, int m);
 void print_Program(struct instruction* instr_array, char* filename);
 void print_Stack(struct registers* reg, int* stack);
-int  readFile(char* filename, struct instruction* program);
 
 
 int main(int argc, char** argv)
 {
     int maxWidth = 4;
+    int* stack = (int*)calloc(MAX_STACK_HEIGHT, sizeof(int));
     char* filename = argv[1];
     struct instruction instr_array [MAX_CODE_LENGTH];
-    int* stack = (int*)calloc(MAX_STACK_HEIGHT, sizeof(int));
     struct registers* reg = (struct registers*)calloc(1, sizeof(struct registers));
-    
-    
+
     // scan in input from file and store in instruction array
-    if ( readFile(filename, instr_array) )
+    if( readFile(filename, instr_array) )
     {
         printf("couldn't open file %s.\n", argv[1]);
+        
         return 1;
     }
     
@@ -106,7 +106,7 @@ int ARheight(struct registers* reg, int* stack, int n)
     int numARs = 1;
     
     // calculate number of AR records
-    while (base > 1)
+    while(base > 1)
     {
         top = base - 1;
         base = stack[base+1];
@@ -119,7 +119,7 @@ int ARheight(struct registers* reg, int* stack, int n)
     int depth = numARs - n;
     
     // find top and bottom of n^{th} AR record from bottom of stack
-    while (depth > 1)
+    while(depth > 1)
     {
         top = base - 1;
         base = stack[base+1];
@@ -135,7 +135,7 @@ int ARheight(struct registers* reg, int* stack, int n)
 
 int base(int level, int b, int* stack)
 {
-    while (level > 0)
+    while(level > 0)
     {
         b = stack[b + 2];
         level--;
@@ -151,11 +151,12 @@ int base(int level, int b, int* stack)
 
 void fetch(struct instruction instr_array [], struct registers* reg, int* stack){
     
-    int halt=0, maxWidth=4;
+    int halt=0
+    int maxWidth=4;
     
-    while (!halt)
+    while(!halt)
     {
-        if ( (reg->pc >= MAX_CODE_LENGTH) || (reg->pc < 0) )
+        if( (reg->pc >= MAX_CODE_LENGTH) || (reg->pc < 0) )
         {
             halt = 1;
             break;
@@ -179,6 +180,7 @@ void fetch(struct instruction instr_array [], struct registers* reg, int* stack)
         print_Stack(reg, stack);
         
     }
+    
     return;
 }
 
@@ -215,7 +217,7 @@ int execute(struct registers* reg, int* stack)
         case 2:
             
             // RET
-            if ((reg->ir).m == 0)
+            if((reg->ir).m == 0)
             {
                 reg->sp = (reg->bp) - 1;
                 reg->pc = stack[(reg->sp) + 4];
@@ -224,14 +226,14 @@ int execute(struct registers* reg, int* stack)
             }
             
             // NEG
-            if ((reg->ir).m == 1)
+            if((reg->ir).m == 1)
             {
                 stack[reg->sp] = -(stack[reg->sp]);
                 break;
             }
             
             // ADD
-            if ((reg->ir).m == 2)
+            if((reg->ir).m == 2)
             {
                 reg->sp = (reg->sp) - 1;
                 stack[reg->sp] = stack[reg->sp] + stack[(reg->sp) + 1];
@@ -239,7 +241,7 @@ int execute(struct registers* reg, int* stack)
             }
             
             // SUB
-            if ((reg->ir).m == 3)
+            if((reg->ir).m == 3)
             {
                 reg->sp = (reg->sp) - 1;
                 stack[reg->sp] = stack[reg->sp] - stack[(reg->sp) + 1];
@@ -247,15 +249,15 @@ int execute(struct registers* reg, int* stack)
             }
             
             // MUL
-            if ((reg->ir).m == 4){
-                
+            if((reg->ir).m == 4)
+            {
                 reg->sp = (reg->sp) - 1;
                 stack[reg->sp] = stack[reg->sp] * stack[(reg->sp) + 1];
                 break;
             }
             
             // DIV
-            if ((reg->ir).m == 5)
+            if((reg->ir).m == 5)
             {
                 reg->sp = (reg->sp) - 1;
                 stack[reg->sp] = stack[reg->sp] / stack[(reg->sp) + 1];
@@ -263,14 +265,14 @@ int execute(struct registers* reg, int* stack)
             }
             
             // ODD
-            if ((reg->ir).m == 6)
+            if((reg->ir).m == 6)
             {
                 stack[reg->sp] = stack[reg->sp] % 2;
                 break;
             }
             
             // MOD
-            if ((reg->ir).m == 7)
+            if((reg->ir).m == 7)
             {
                 reg->sp = (reg->sp) - 1;
                 stack[reg->sp] = stack[reg->sp] % stack[(reg->sp) + 1];
@@ -278,7 +280,7 @@ int execute(struct registers* reg, int* stack)
             }
             
             // EQL
-            if ((reg->ir).m == 8)
+            if((reg->ir).m == 8)
             {
                 reg->sp = (reg->sp) - 1;
                 stack[(reg->sp)] = stack[reg->sp] == stack[(reg->sp) + 1];
@@ -286,7 +288,7 @@ int execute(struct registers* reg, int* stack)
             }
             
             // NEQ
-            if ((reg->ir).m == 9)
+            if((reg->ir).m == 9)
             {
                 reg->sp = (reg->sp) - 1;
                 stack[reg->sp] = stack[reg->sp] != stack[(reg->sp) + 1];
@@ -294,7 +296,7 @@ int execute(struct registers* reg, int* stack)
             }
             
             // LSS
-            if ((reg->ir).m == 10)
+            if((reg->ir).m == 10)
             {
                 reg->sp = (reg->sp) - 1;
                 stack[reg->sp] = stack[reg->sp] < stack[(reg->sp) + 1];
@@ -302,7 +304,7 @@ int execute(struct registers* reg, int* stack)
             }
             
             // LEQ
-            if ((reg->ir).m == 11)
+            if((reg->ir).m == 11)
             {
                 reg->sp = (reg->sp) - 1;
                 stack[reg->sp] = stack[reg->sp] <= stack[(reg->sp) + 1];
@@ -310,7 +312,7 @@ int execute(struct registers* reg, int* stack)
             }
             
             // GTR
-            if ((reg->ir).m == 12)
+            if((reg->ir).m == 12)
             {
                 reg->sp = (reg->sp) - 1;
                 stack[reg->sp] = stack[reg->sp] > stack[(reg->sp) + 1];
@@ -318,7 +320,7 @@ int execute(struct registers* reg, int* stack)
             }
             
             // GEQ
-            if ((reg->ir).m == 13)
+            if((reg->ir).m == 13)
             {
                 reg->sp = (reg->sp) - 1;
                 stack[reg->sp] = stack[reg->sp] >= stack[(reg->sp) + 1];
@@ -365,7 +367,7 @@ int execute(struct registers* reg, int* stack)
         // JPC: Pop stack and jump to M if value is equal to 0
         case 8:
             
-            if (stack[reg->sp] == 0)
+            if(stack[reg->sp] == 0)
             {
                 reg->pc = (reg->ir).m;
             }
@@ -377,22 +379,23 @@ int execute(struct registers* reg, int* stack)
         case 9:
             
             // OUT: Pop stack and print out value
-            if ((reg->ir).m == 0)
+            if((reg->ir).m == 0)
             {
                 printf("%d", stack[reg->sp]);
                 reg->sp = (reg->sp) - 1;
             }
             
             // INP: Read input from user and push it
-            if ((reg->ir).m == 1)
+            if((reg->ir).m == 1)
             {
                 reg->sp = (reg->sp) + 1;
                 scanf("%d", &(stack[reg->sp]));
             }
             
             // HLT: Halt the machine
-            if ((reg->ir).m == 2)
+            if((reg->ir).m == 2)
             {
+            
                 return 1;
             }
             
@@ -405,16 +408,16 @@ int execute(struct registers* reg, int* stack)
 // Pre-condition:  Legal op(eration) and m(odifier) codes passed.
 // Post-condition: Prints instruction to screen.
 
-void print_Instruction(int op, int l, int m){
-    
-    int maxWidth=4;
+void print_Instruction(int op, int l, int m)
+{
+    int maxWidth = 4;
     
     // operation
-    if (op == 2)
+    if(op == 2)
     {
         printf("%s ", opNamesOPR[m]);
     }
-    else if (op == 9)
+    else if(op == 9)
     {
         printf("%s ", opNamesSIO[m]);
     }
@@ -424,7 +427,7 @@ void print_Instruction(int op, int l, int m){
     }
     
     // level
-    if ( (op >= 3) && (op <= 5) )
+    if( (op >= 3) && (op <= 5) )
     {
         printf("%*d ", maxWidth, l);
     }
@@ -434,7 +437,7 @@ void print_Instruction(int op, int l, int m){
     }
     
     // modifier
-    if ( (op != 2) && (op != 9) )
+    if( (op != 2) && (op != 9) )
     {
         printf("%*d ", maxWidth, m);
     }
@@ -452,12 +455,12 @@ void print_Instruction(int op, int l, int m){
 
 void print_Program(struct instruction* instr_array, char* filename){
     
-    int i=0;
+    int i = 0;
     
     printf("%s\n", filename);
     printf("PL/0 code:\n\n");
     
-    while (instr_array[i].op > 0)
+    while(instr_array[i].op > 0)
     {
         printf("%*d  ", 3, i);
         print_Instruction(instr_array[i].op, instr_array[i].l, instr_array[i].m);
@@ -474,9 +477,12 @@ void print_Program(struct instruction* instr_array, char* filename){
 // Pre-Conditions:  reg and stack are non-null pointers.
 // Post-Conditions: Prints the contents of the stack to the screen.
 
-void print_Stack(struct registers* reg, int* stack){
+void print_Stack(struct registers* reg, int* stack)
+{
     
-    int i=1, height=0, level=0;
+    int i = 1; 
+    int height = 0; 
+    int level = 0;
     
     // for alignment purposes
     printf("   ");
@@ -508,20 +514,23 @@ void print_Stack(struct registers* reg, int* stack){
 // Post-Conditions:  Reads file and stores instructions in provided array.
 //                   Returns 0 on success, 1 on failure.
 
-int readFile(char* filename, struct instruction* instr_array){
-    
-    int numInstructions=0, n0=0, n1=0, n2=0;
+int readFile(char* filename, struct instruction* instr_array)
+{
+    int numInstructions = 0, 
+    int n0 = 0;
+    int n1 = 0;
+    int n2 = 0;
     char* mode = "r";
     
     FILE* fp = fopen(filename, mode);
     
-    if (fp == NULL)
+    if(fp == NULL)
     {
         return 1;
     }
     
     // read until eof or max instructions read
-    while ( (numInstructions < MAX_CODE_LENGTH) && !feof(fp) )
+    while( (numInstructions < MAX_CODE_LENGTH) && !feof(fp) )
     {
         fscanf(fp, "%d %d %d", &n0, &n1, &n2);
         instr_array[numInstructions].op = n0;
@@ -541,3 +550,5 @@ int readFile(char* filename, struct instruction* instr_array){
     
     return 0;
 }
+
+// *** EOF ***
