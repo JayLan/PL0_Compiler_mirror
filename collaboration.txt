@@ -16,3 +16,5 @@ Jason Lancaster
   - Tested code on Eustis
 
 Victoria Proetsch
+  -Merged Cristen's and Megan's code bases into single working program
+  -Testing and debugging after merge
