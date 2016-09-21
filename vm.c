@@ -72,6 +72,8 @@ int main(int argc, char** argv)
     struct instruction instr_array [MAX_CODE_LENGTH];
     struct registers* reg = (struct registers*)calloc(1, sizeof(struct registers));
     
+    initializeRegisters(reg);
+    
     // scan in input from file and store in instruction array
     if( readFile(filename, instr_array) )
     {
@@ -86,7 +88,7 @@ int main(int argc, char** argv)
     // begin printing and formatting for the execution output
     printf("Execution:\n");
     printf("%*s   pc   bp   sp   stack\n", 19, "");
-    printf("%*s %*d %*d %*d\n", 19, "", maxWidth, reg->pc, maxWidth, reg->bp, maxWidth, reg->sp);
+    printf("%*s %*d %*d %*d   \n", 19, "", maxWidth, reg->pc, maxWidth, reg->bp, maxWidth, reg->sp);
     
     // fetch and execute cycle
     fetch(instr_array, reg, stack);
@@ -148,8 +150,8 @@ int base(int level, int b, int* stack)
 void fetch(struct instruction instr_array [], struct registers* reg, int* stack)
 {
     
-    int halt=0;
-    int maxWidth=4;
+    int halt = 0;
+    int maxWidth = 4;
     
     while(!halt)
     {
@@ -171,7 +173,7 @@ void fetch(struct instruction instr_array [], struct registers* reg, int* stack)
         }
         
         // display (and increment) program counter
-        printf("%*d  ", maxWidth, reg->pc++);
+        printf("%*d  ", maxWidth-1, reg->pc++);
         
         // print out operation, lexicographical level, modifier
         print_Instruction((reg->ir).op, (reg->ir).l, (reg->ir).m);
@@ -180,7 +182,7 @@ void fetch(struct instruction instr_array [], struct registers* reg, int* stack)
         halt = execute(reg, stack);
         
         // display program counter, base pointer, stack pointer and stack
-        printf("%*d %*d %*d", maxWidth, reg->pc, maxWidth, reg->bp, maxWidth, reg->sp);
+        printf(" %*d %*d %*d", maxWidth, reg->pc, maxWidth, reg->bp, maxWidth, reg->sp);
         print_Stack(reg, stack);
         
     }
@@ -521,10 +523,11 @@ void print_Stack(struct registers* reg, int* stack)
 int readFile(char* filename, struct instruction* instr_array)
 {
     int numInstructions = 0;
+    char* mode = "r";
+    
     int n0 = 0;
     int n1 = 0;
     int n2 = 0;
-    char* mode = "r";
     
     FILE* fp = fopen(filename, mode);
     
@@ -533,13 +536,24 @@ int readFile(char* filename, struct instruction* instr_array)
         return 1;
     }
     
-    // read until eof or max instructions read
-    while( (numInstructions < MAX_CODE_LENGTH) && !feof(fp) )
+    // read until eof or max instructions read...
+    // if input file does not have newline at end of last data line
+    // then the last instruction will not be read in
+    while(numInstructions < MAX_CODE_LENGTH)
     {
         fscanf(fp, "%d %d %d", &n0, &n1, &n2);
-        instr_array[numInstructions].op = n0;
-        instr_array[numInstructions].l  = n1;
-        instr_array[numInstructions].m  = n2;
+        
+        if (!feof(fp))
+        {
+            instr_array[numInstructions].op = n0;
+            instr_array[numInstructions].l  = n1;
+            instr_array[numInstructions].m  = n2;
+        }
+        else
+        {
+            break;
+        }
+        
         numInstructions++;
     }
     
