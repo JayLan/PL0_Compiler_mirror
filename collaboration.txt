@@ -6,6 +6,8 @@ Cristen Palmer
   - debugging after Megan's code and my version were merged
   
 Megan Chipman
+  - wrote an initial base version of the program that was
+    later merged with Cristen's. 
 
 Jason Lancaster
   - Troubleshooting, Stylistic updates, and consistency
