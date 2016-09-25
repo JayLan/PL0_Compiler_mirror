@@ -1,6 +1,20 @@
 Contributions of Compiler Builders 33
--------------------------------------
+=====================================
 
+lexer.c:
+--------
+Cristen Palmer
+
+Megan Chipman
+
+Jason Lancaster
+
+Victoria Proetsch
+
+
+
+vm.c:
+-----
 Cristen Palmer
   - wrote and tested a fully working version of program
   - debugging after Megan's code and my version were merged
