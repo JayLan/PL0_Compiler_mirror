@@ -1,24 +1,49 @@
-C has no native boolean type, but I labeled some of the below as bool just to indicate I didn't think they would have a return value other than some success/failure indicator. I tried to list them in logical order of execution, 
+bool return values indicate I didn't think they would have a return value other than some success/failure indicator. I tried to list them in logical order of execution, 
 
 void  SetFlags (int argc, char* argv[]);
 bool  DisplayTextFile (File* infile);
 bool  RemoveComments (File* infile, File* outfile);
 
-
 LOOP:
 
-  I'm not sure if these next two functions should be seperate functions or a single one.
+I'm not sure if these next two functions should be seperate functions or a single one.
 
-  char[] GetNextLexeme (File *);
-  bool   MakeToken(char[]);   <--- should this call a function to report error messages (the 4 lexical errors we should catch)
+char[] GetNextLexeme (File *);
+bool   MakeToken(char[]);   <--- should this call a function to report error messages (the 4 lexical errors we should catch)
                                  or have an int return value indicating when one of those errors occured? Guess it depends on the control 
                                  structure we end up going with.
 
-  void  DisplayLexicalError(int errorCode);   <only run if an error encountered>
-  bool  InsertToken (HashTable* h, Token t);
-  bool  LookupToken (HashTable* h, Token t);
+void  DisplayLexicalError(int errorCode);   <only run if an error encountered>
+bool  InsertToken (HashTable* h, Token t);
+bool  LookupToken (HashTable* h, Token t);
   
 :END-LOOP
 
 bool  DisplayAllTokens (HashTable* h);
 
+---- structures ----
+token/token_type struct is defined in tokens.h (Prof provided) the token types. aToken (defined below) is intended t store the actual tokens, not just their type (which is part of the actual token, of course).
+
+
+typedef struct aToken
+{
+    char* value;
+    token_type t;
+    
+} aToken_type;
+
+typedef struct node
+{
+    struct node* next;
+    struct aToken_type* t;
+    int value;              // added so nodes were multipurpose (usedList uses int value for store/retrieve of table insertion points )
+    
+} node_type;
+
+typedef struct hashTable
+{
+    node_type** table;
+    node_type* usedList;  // at end, when enumerated for displaying results, test for NULL== of target nodes in table 
+                          // (if true, just move to next node in usedList). For each node in usedList, display the root node's aToken  
+                          // info then free the root node and point root pointer to the next node after the to-be-free'd root node, if any 
+} hashTable_type;
