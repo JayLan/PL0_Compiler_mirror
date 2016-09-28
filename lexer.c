@@ -20,5 +20,7 @@
 //| * Identifier cannot exceed 12 chars
 //| * Number cannot exceed 2^16 - 1
 //| * Token cannot be invalid
+//| * When an above error is encountered, program must halt and state type of error
+//| * Clean code removes comments but not superfluous whitespace/newlines
 //|===========================================================================
 
