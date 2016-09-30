@@ -1,49 +1,68 @@
 bool return values indicate I didn't think they would have a return value other than some success/failure indicator. I tried to list them in logical order of execution, 
 
-void  SetFlags (int argc, char* argv[]);
-bool  DisplayTextFile (File* infile);
-bool  RemoveComments (File* infile, File* outfile);
+Task/Function 1
+---------------
+void  SetFlags (int argc, char* argv[], settings_type* settings);
+bool  RemoveComments (FILE* infile, File* coomentFreeFile);
 
-LOOP:
+Task/Function 3
+---------------
+bool  DisplayTextFile (FILE* infile);
+(same function can be reused on file without comments)
 
-I'm not sure if these next two functions should be seperate functions or a single one.
-
-char[] GetNextLexeme (File *);
-bool   MakeToken(char[]);   <--- should this call a function to report error messages (the 4 lexical errors we should catch)
-                                 or have an int return value indicating when one of those errors occured? Guess it depends on the control 
-                                 structure we end up going with.
-
+Task/Function 2
+---------------
+aToken_type GetNextToken(FILE* commentFreeFile);
 void  DisplayLexicalError(int errorCode);   <only run if an error encountered>
+
+Task/Function 4
+---------------
+main
+prototypes
+includes
+
+Task/Function 5 - if we use a hash table (if not, something comparable for alternate structure)
+----------------
 bool  InsertToken (HashTable* h, Token t);
 bool  LookupToken (HashTable* h, Token t);
-  
-:END-LOOP
-
 bool  DisplayAllTokens (HashTable* h);
 
----- structures ----
-token/token_type struct is defined in tokens.h (Prof provided) the token types. aToken (defined below) is intended t store the actual tokens, not just their type (which is part of the actual token, of course).
 
+---- some possible structures ----
 
-typedef struct aToken
+// an actual token... token_type is an enum provided in tokens.h (which I'm sure we can rename)
+typedef struct
 {
     char* value;
     token_type t;
-    
+
 } aToken_type;
 
-typedef struct node
+// if you want to store all the "settings" in one structure... 
+// otherwise, just consider it a list of (potential) vars/pointers we'll need
+typedef struct
+{
+    bool displaySourceOnly; // only display source file then exit
+    bool displayCleanOnly;  // only display source stripped of comments then exit
+    FILE* inputFile;        // PL/0 source file to lex
+    FILE* cleanFile;        // for comment-stripped output file
+    
+} settings_type;
+
+// nodes for linked list
+typedef struct
 {
     struct node* next;
     struct aToken_type* t;
-    int value;              // added so nodes were multipurpose (usedList uses int value for store/retrieve of table insertion points )
+    int value;
     
 } node_type;
 
-typedef struct hashTable
+// ?
+typedef struct
 {
     node_type** table;
-    node_type* usedList;  // at end, when enumerated for displaying results, test for NULL== of target nodes in table 
-                          // (if true, just move to next node in usedList). For each node in usedList, display the root node's aToken  
-                          // info then free the root node and point root pointer to the next node after the to-be-free'd root node, if any 
+    node_type* usedList; (used to store, in order, int values of locations in table of each insert (of node w/ token)
+    
 } hashTable_type;
+
