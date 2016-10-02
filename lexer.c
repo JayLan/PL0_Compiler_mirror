@@ -58,4 +58,23 @@ int main(int argc, char *argv[]) {
 
 	return 0;
 
-} // End Main 
+} // End Main
+
+//Pre-Conditions: Takes in a valid index file pointer.
+//Post-Conditions: Prints the contents of the file to the user.
+
+void displayInputFile(FILE* ifp){
+
+    char c;
+
+    //Read in contents until end of file is reached.
+    //Display file content.
+    while (!feof(ifp)){
+        c = fgetc(ifp);
+        printf("%c", c);
+    }
+
+    //OPTIONAL: Add space between printed statements.
+    printf("\n\n");
+
+}
