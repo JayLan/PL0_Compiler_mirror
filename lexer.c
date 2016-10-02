@@ -24,3 +24,38 @@
 //| * Clean code removes comments but not superfluous whitespace/newlines
 //|===========================================================================
 
+
+#include <stdio.h>
+#include <stdlib.h>
+// * currently including tokens.h - may copy enum to code base to avoid makefile *
+#include "tokens.h"
+
+#define LEX_ERR_1 "*** Identifier Does Not Begin With a Letter ***"
+#define LEX_ERR_2 "*** Identifier Exceeds 12 Characters ***"
+#define LEX_ERR_3 "*** Number Exceeds Allowable Size ***"
+#define LEX_ERR_4 "*** Invalid Token ***"
+
+
+
+// Function Prototypes:
+//void displaySource();
+//void displaySourceClean();
+//void displayInputFile(FILE* infile);
+
+//* switch case this, do: puts(LEX_ERR_#) for each case if to console;
+//void displayLexError(int err_code);
+
+
+int main(int argc, char *argv[]) {
+
+
+
+
+
+
+
+
+
+	return 0;
+
+} // End Main 
