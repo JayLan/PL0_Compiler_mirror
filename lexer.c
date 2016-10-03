@@ -62,7 +62,6 @@ typedef struct
 
 // function prototypes
 aToken_type* getNextToken(FILE* cleanFile);
-aToken_type* makeToken(char[]);
 
 int  getDFAcolumnNumber (char c);
 int  nextState(int currentState, int input);
@@ -70,7 +69,6 @@ int  stateToTokenTypeOrdinal(int s);
 
 void displayError(int code, int var);
 void displayInputFile(FILE* ifp);
-void displayLexicalError(int errorCode);
 void displaySource();
 void displaySourceClean();
 void displayToken(aToken_type* t);
