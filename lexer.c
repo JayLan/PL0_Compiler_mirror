@@ -59,9 +59,7 @@ int  nextState(int currentState, int input);
 int  stateToTokenTypeOrdinal(int s);
 
 void displayError(int code, int var);
-void displayInputFile(FILE* ifp);
-void displaySource();
-void displaySourceClean();
+void displaySourceFile(FILE* ifp);
 void displayToken(aToken_type* t);
 void freeToken(aToken_type* t);
 
@@ -153,7 +151,7 @@ void displayError(int code, int var)
 // Pre-Conditions: Takes in a valid index file pointer.
 // Post-Conditions: Prints the contents of the file to the user.
 
-void displayInputFile(FILE* ifp){
+void displaySourceFile(FILE* ifp){
     
     char c;
     
