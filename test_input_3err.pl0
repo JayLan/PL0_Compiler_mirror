@@ -6,6 +6,6 @@ BEGIN
 WHILE w > y DO BEGIN
     q := 2 * q;
     w := w / 2;
+ennd.
     
-    
-/* this is missing END twice */
+/* this is missing last END */
