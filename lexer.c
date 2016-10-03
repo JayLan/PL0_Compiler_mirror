@@ -50,15 +50,6 @@ typedef struct
     
 } aToken_type;
 
-// not used yet... just an outline
-typedef struct
-{
-    struct node* next;
-    struct aToken_type* t;
-    int value;
-    
-} node_type;
-
 
 // function prototypes
 aToken_type* getNextToken(FILE* cleanFile);
@@ -74,7 +65,7 @@ void displaySourceClean();
 void displayToken(aToken_type* t);
 void freeToken(aToken_type* t);
 
-// functions
+
 int main(int argc, char* argv[])
 {
 
@@ -88,10 +79,10 @@ int main(int argc, char* argv[])
         if ( toke->t == 1 )
             break;
         
-        
         displayToken(toke);
         freeToken(toke);
     }
+    
 } // End main
 
 
@@ -100,75 +91,74 @@ void displayError(int code, int var)
     
     switch (code)
     {
-    case (1):
-    
-        printf("DFA: finished in dead state\n");
-        break;
-    
-    case (2):
-            
-        printf("Invalid column number returned by getDFAcolumnNumber (column: %d)\n", var);
-        break;
-            
-    case (3):
-            
-        printf("Identifier too long\n");
-        break;
-            
-    case (4):
-            
-        printf("Number out of acceptable range (val: %d)\n", var);
-        break;
-            
-    case (5):
-            
-        printf("nextState was passed an invalid current state (state: %d)\n", var);
-        break;
-    
-    case (6):
-        
-        printf("nextState was passed an invalid input column (column: %d)\n", var);
-        break;
-            
-    case (7):
-            
-        printf("stateToTokenTypeOrdinal was passed an invalid state (state: %d)\n", var);
-        break;
-    
-    case (8):
-            
-        printf("getDFAcolumnNumber was passed an invalid character (value: %d)\n", var);
-        break;
-            
-    case (10):
-            
-        printf("identifier cannot start with a number\n");
-        break;
-            
-    case (11):
-        
-        printf("invalid token\n");
-        break;
-            
-    default:
-        
-        printf("unknown error occured\n");
-        break;
-    }
-    
-    return;
-}
+		case (1):
+	
+			printf("DFA: finished in dead state\n");
+			break;
+	
+		case (2):
+			
+			printf("Invalid column number returned by getDFAcolumnNumber (column: %d)\n", var);
+			break;
+			
+		case (3):
+			
+			printf("Identifier too long\n");
+			break;
+			
+		case (4):
+			
+			printf("Number out of acceptable range (val: %d)\n", var);
+			break;
+			
+		case (5):
+			
+			printf("nextState was passed an invalid current state (state: %d)\n", var);
+			break;
+	
+		case (6):
+		
+			printf("nextState was passed an invalid input column (column: %d)\n", var);
+			break;
+			
+		case (7):
+			
+			printf("stateToTokenTypeOrdinal was passed an invalid state (state: %d)\n", var);
+			break;
+	
+		case (8):
+			
+			printf("getDFAcolumnNumber was passed an invalid character (value: %d)\n", var);
+			break;
+			
+		case (10):
+			
+			printf("identifier cannot start with a number\n");
+			break;
+			
+		case (11):
+		
+			printf("invalid token\n");
+			break;
+			
+		default:
+		
+			printf("unknown error occured\n");
+			break;
+	}
+	
+} // END display error
 
 
-//Pre-Conditions: Takes in a valid index file pointer.
-//Post-Conditions: Prints the contents of the file to the user.
+// Pre-Conditions: Takes in a valid index file pointer.
+// Post-Conditions: Prints the contents of the file to the user.
 
 void displayInputFile(FILE* ifp){
     
     char c;
     
-    //Read in contents until end of file is reached.
-    //Display file content.
+    // Read in contents until end of file is reached.
+    // Display file content.
     while (!feof(ifp)){
         c = fgetc(ifp);
         printf("%c", c);
@@ -177,7 +167,7 @@ void displayInputFile(FILE* ifp){
     //OPTIONAL: Add space between printed statements.
     printf("\n\n");
     
-}
+} // END display input file
 
 
 void  displayToken(aToken_type* t)
@@ -231,8 +221,10 @@ void  displayToken(aToken_type* t)
     }
     
     printf("\n");
+    
     return;
-}
+    
+} // END display token
 
 
 void  freeToken(aToken_type* t)
@@ -249,10 +241,10 @@ void  freeToken(aToken_type* t)
     }
     
     return;
-}
+    
+} // END free token
 
 
-// if I had just made the matrix align with ASCII codes, wouldn't need this
 int getDFAcolumnNumber(char c)
 {
     
@@ -334,7 +326,8 @@ int getDFAcolumnNumber(char c)
     }
     
     return DFAcolumnNumber;
-}
+    
+} // END get DFA column number
 
 
 //  returns next token starting at current position of file pointer
@@ -490,10 +483,9 @@ aToken_type* getNextToken(FILE* cleanFile)
             break;
     }
 
-    
-    // return token
     return t;
-}
+    
+} // END get next token
 
 
 int nextState(int currentState, int input)
@@ -593,7 +585,8 @@ int nextState(int currentState, int input)
     /* 75 DEAD */   {   75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75, 75  } };
 
     return DFA[currentState][input];
-}
+    
+} // END next state
 
 
 // will return 0 on invalid character
@@ -685,4 +678,5 @@ int stateToTokenTypeOrdinal(int s)
         /* 75 DEAD */       1};
     
     return ordinalTable[s];
-}
+    
+} // END state to token type ordinal
