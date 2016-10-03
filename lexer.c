@@ -29,12 +29,20 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "stdbool.h"
-#include "tokens.h"
 
 #define MAX_IDENTIFIER_LENGTH     12
 #define DFA_MATRIX_NUMBER_COLUMNS 75
 #define DFA_MATRIX_NUMBER_STATES  76
 #define DEAD_STATE                75
+
+typedef enum token {
+  nulsym = 1, identsym, numbersym, plussym, minussym,
+  multsym, slashsym, oddsym, eqsym, neqsym, lessym, leqsym,
+  gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym,
+  periodsym, becomessym, beginsym, endsym, ifsym, thensym,
+  whilesym, dosym, callsym, constsym, varsym, procsym, writesym,
+  readsym , elsesym
+} token_type;
 
 union token_value
 {
@@ -165,7 +173,7 @@ void displaySourceFile(FILE* ifp){
     //OPTIONAL: Add space between printed statements.
     printf("\n\n");
     
-} // END display input file
+} // END display source file
 
 
 void  displayToken(aToken_type* t)
