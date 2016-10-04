@@ -4,6 +4,11 @@ Contributions of Compiler Builders 33
 lexer.c:
 --------
 Cristen Palmer
+- wrote DFA matrix
+- wrote all the functions involved in identifying, creating, validating, and displaying tokens, and displaying related errors
+(i.e. getNextToken, getDFAcolumnNumber, nextState, stateToTokenTypeOrdinal, displayError, displayToken, freeToken)
+- wrote all the code inside main function
+- fixed all errors in program that were discovered when test cases were run
 
 Megan Chipman
 
