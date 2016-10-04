@@ -8,10 +8,10 @@ Cristen Palmer
 Megan Chipman
 
 Jason Lancaster
-- Main function, Setup, Includes, Stylistic updates
-- Function Prototypes, parameters
+- Main function, Setup(header, document), Includes, #defines(deleted), Stylistic updates
+- Function declarations(2)
 - Testing, created 6 test cases, created testing report document
-
+- Provided project management experience to team to ensure we split up tasks and moved project forward to successful completion.
 
 Victoria Proetsch
 
