@@ -8,6 +8,10 @@ Cristen Palmer
 Megan Chipman
 
 Jason Lancaster
+- Main function, Setup, Includes
+- Function Prototypes, parameters
+- Testing, created 6 test cases, created testing report document
+
 
 Victoria Proetsch
 
