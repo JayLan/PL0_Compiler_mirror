@@ -13,9 +13,9 @@ Cristen Palmer
 Megan Chipman
 
 Jason Lancaster
-- Main function, Setup(header, document), Includes, #defines(deleted), Stylistic updates
-- Function declarations(2)
-- Testing, created 6 test cases, created testing report document
+- Setup(created Main function outline w/parameters, header, document), Includes, 4 #defines(deleted) strings for errors, Stylistic/consistency updates.
+- Function declarations(2), inserted token types enum.
+- Testing, created 6 test cases, created testing report document.
 - Provided project management experience to team to ensure we split up tasks and moved project forward to successful completion.
 
 Victoria Proetsch
