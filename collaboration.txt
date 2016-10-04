@@ -19,6 +19,8 @@ Jason Lancaster
 - Provided project management experience to team to ensure we split up tasks and moved project forward to successful completion.
 
 Victoria Proetsch
+- Wrote setOptions, readnextc, and removeComments functions to read arguments from command line and 
+- Wrote Options struct to store cmd line args 
 
 
 
