@@ -8,7 +8,7 @@ Cristen Palmer
 Megan Chipman
 
 Jason Lancaster
-- Main function, Setup, Includes
+- Main function, Setup, Includes, Stylistic updates
 - Function Prototypes, parameters
 - Testing, created 6 test cases, created testing report document
 
