@@ -1,0 +1,12 @@
+Lexer Testing Report
+====================
+
+Test/File				Pass		Expected Outcome
+---------				----		----------------
+
+test_input_1.pl0		Y			No Error
+test_input_2.pl0		Y			No Error
+test_input_3err.pl0		Y			Invalid token | halt prog.
+test_input_4err.pl0		N			Number out of acceptable range | * did not halt correctly
+test_input_5err.pl0		Y			Identifier cannot start with a number | halt prog.
+test_input_6err.pl0		Y			Identifier too long | halt prog.

@@ -5,7 +5,7 @@ BEGIN
   
 WHILE w > y DO BEGIN
     q := 2 * q;
-    w := w / 2;
-ennd.
+    w =: w / 2; /* switched assignment operator order */
+end.
     
 /* this is missing last END */

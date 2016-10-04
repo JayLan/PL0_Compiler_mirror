@@ -16,7 +16,7 @@
 //|
 //|  Notes:
 //|
-//| * Identifier cannot start with a letter
+//| * Identifier must start with a letter
 //| * Identifier cannot exceed 12 chars
 //| * Number cannot exceed 2^16 - 1
 //| * Token cannot be invalid
