@@ -15,15 +15,6 @@
 //|  Purpose:	Assignment #2, Implement a lexical analyzer for PL/0
 //|
 //|  Notes:
-//|
-//| * Identifier cannot start with a number
-//| * Identifier cannot exceed 12 chars
-//| * Number cannot exceed 2^16 - 1
-//| * Token cannot be invalid
-//| * When an above error is encountered, program must halt and state type of error
-//| * Clean code removes comments but not superfluous whitespace/newlines
-//| * code expected final newline after every line of code,
-//|   EOF should immediatly follow a newline character
 //|===========================================================================
 
 #include "stdio.h"
