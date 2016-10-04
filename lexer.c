@@ -174,7 +174,7 @@ void displayError(int code, int var)
             
             printf("getDFAcolumnNumber was passed an invalid character (value: %d)\n", var);
             break;
-    
+            
         case(10):
             
             // this error message required by assignment specs
@@ -186,7 +186,7 @@ void displayError(int code, int var)
             // this error message required by assignment specs
             printf("Invalid token\n");
             break;
-        
+            
         case(12):
             printf("displaySourceFile invalid file pointer\n");
             break;
@@ -543,7 +543,7 @@ aToken_type* getNextToken(FILE* cleanFile)
     switch(tokenTypeOrdinal)
     {
             
-        // invalid token type, invalid character (e.g. ':' without '=', or '$', or '@', etc)
+            // invalid token type, invalid character (e.g. ':' without '=', or '$', or '@', etc)
         case(0):
             
             displayError(11, 0);
@@ -551,21 +551,23 @@ aToken_type* getNextToken(FILE* cleanFile)
             free(lexeme);
             break;
             
-        // identifier token -- lexeme must live
+            // identifier token -- lexeme must live
         case(2):
             
             t->val.identifier = lexeme;
             break;
             
-        // number token
+            // number token
         case(3):
             
             sscanf(lexeme, "%d", &i);
             if ( (i > 32767) || (i < -32768) )
             {
-                t->val.number = 1; // signal halt to caller
+                // display error and signal halt
+                t->t          = 1;
                 DFAstate      = 0;
                 displayError(4, i);
+                break;
             }
             else
             {
