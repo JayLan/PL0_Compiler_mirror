@@ -11,6 +11,8 @@ Cristen Palmer
 - fixed all errors in program that were discovered when test cases were run
 
 Megan Chipman
+-wrote function that displays the contents of both the original file, and the file that contains no comments
+ to the user. (displaySourceFile)
 
 Jason Lancaster
 - Setup(created Main function outline w/parameters, header, document), Includes, 4 #defines(deleted) strings for errors, Stylistic/consistency updates.
