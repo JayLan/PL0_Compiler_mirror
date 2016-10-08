@@ -22,33 +22,25 @@
 #include "stdbool.h"
 #include "string.h"
 
-#define MAX_IDENTIFIER_LENGTH     12
-#define DFA_MATRIX_NUMBER_COLUMNS 127
+#define MAX_IDENTIFIER_LENGTH    12
+#define MAX_ASCII_INPUT         126
 #define DEAD_STATE                0
 #define START_STATE               1
 #define IDENT_STATE               2
 #define NUMBER_STATE              3
+#define NULL_TOKEN                1
 
-typedef enum token {
-    nulsym = 1, identsym, numbersym, plussym, minussym,
-    multsym, slashsym, oddsym, eqsym, neqsym, lessym, leqsym,
-    gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym,
-    periodsym, becomessym, beginsym, endsym, ifsym, thensym,
-    whilesym, dosym, callsym, constsym, varsym, procsym, writesym,
-    readsym , elsesym
-} token_type;
 
 union token_value
 {
     int   number;
     char* identifier;
-    
 };
 
 typedef struct
 {
     union token_value val;
-    token_type  t;
+    size_t type;
     
 } aToken_type;
 
@@ -61,16 +53,18 @@ struct Options {
 typedef struct DFA {
     char** tokenNames;
     int** matrix;
-    int* rowToTokenType;
+    int* matrixRowToTokenType;
     int numMatrixRows;
 } DFA_type;
 
 // function prototypes
 aToken_type* getNextToken(FILE* cleanFile, DFA_type* DFA);
-bool isLetter(int c);
 bool isIgnoredChar(int c);
+bool isLetter(int c);
 DFA_type* DFAmaker(char** words, size_t words_len, int* words_token,
                    char** symbols, size_t symbols_len, int* symbols_token);
+int  findDiffer(char* a, char* b);
+int  lenToEnd(char* a, size_t p);
 int  setOptions (int argc, char* argv[], struct Options* Options);
 int  removeComments (FILE* infile, FILE* cleanFile);
 void bubbleConSort(char** list, int* indices, size_t len, int i);
@@ -79,7 +73,7 @@ void displaySourceFile(FILE* ifp);
 void displayToken(aToken_type* t, const char* tokenNames[]);
 void freeToken(aToken_type* t);
 void readnextc(FILE* f, char* buff);
-void print_cstring_array(char **array, size_t len);
+
 
 
 // functions
@@ -121,21 +115,50 @@ int main(int argc, char* argv[])
     }
     
     /* setup DFA */
-    char* words[]     = {"const","var","procedure","call","begin","end","if","then","while","do","read","write","odd"};
-    int words_token[] = {     28,   29,         30,    27,     21,   22,  23,    24,    25,   26,    32,     31,   8 };
+    char* words[]     = {"const","var","procedure","call","begin","end","else","if","then","while","do","read","write","odd"};
+    int words_token[] = {     28,   29,         30,    27,     21,   22,    33,  23,    24,    25,   26,    32,     31,    8};
     size_t words_len = sizeof(words) / sizeof(char *);
     
     char* syms[]     = {"+","-","*","/","=","<>","<=","<",">=",">",":=",",",";",".","(",")"};
     int syms_token[] = {  4,  5,  6,  7,  9,  10,  12, 11,  14, 13,  20, 17, 18, 19, 15, 16};
     size_t syms_len = sizeof(syms) / sizeof(char *);
     
+    //  token names are ordered by their (sequential) token type ordinal values
     const char* tokenNames[] = {
         "PLACE_HOLDER", "nulsym", "identsym", "numbersym", "+", "-", "*", "/",
         "odd", "=", "<>", "<", "<=", ">", ">=", "(", ")", ",", ";", ".", ":=",
         "begin", "end", "if", "then", "while", "do", "call", "const", "var",
-        "procedure", "write", "read", "else" };
+        "procedure", "write", "read", "else"};
     
     DFA_type* DFA = DFAmaker(words, words_len, words_token, syms, syms_len, syms_token);
+    
+    // debugging
+    for (int i=-1; i<127; i++)
+    {
+        if (i<33)
+            printf("%*d ",3, i);
+        else
+            printf("%*c ",3, i);
+    }
+    printf("\n");
+    
+    for (int i=0; i<DFA->numMatrixRows; i++)
+    {
+        printf("%*d ",3, i);
+        for (int j=0; j<=MAX_ASCII_INPUT; j++)
+            printf("%*d ",3, DFA->matrix[i][j]);
+        printf("\n");
+    }
+    
+    for (int i=0; i<DFA->numMatrixRows; i++)
+    {
+        printf("%*d ",3, i);
+    }
+    printf("\n");
+    for (int i=0; i<DFA->numMatrixRows; i++)
+    {
+        printf("%*d ",3,DFA->matrixRowToTokenType[i]);
+    }
     
     printf("\n");
     printf("tokens:\n");
@@ -147,7 +170,7 @@ int main(int argc, char* argv[])
         aToken_type* toke = getNextToken(cleanFile, DFA);
         
         // halt if nullsym is returned
-        if ( toke->t == 1 )
+        if ( toke->type == 1 )
             break;
         
         displayToken(toke, tokenNames);
@@ -195,16 +218,18 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token, char** symb
 {
     bool ignoreCharacter = false;
     
-    const int NUM_OF_INPUT_CHARS = 127;
-    const int FIRST_NUMBER    = 48;
-    const int  LAST_NUMBER    = 57;
-    const int FIRST_LOWERCASE = 97;
+    // ascii code boundaries
+    const int FIRST_NUMBER    =  48;
+    const int  LAST_NUMBER    =  57;
+    const int FIRST_LOWERCASE =  97;
     const int  LAST_LOWERCASE = 122;
-    const int FIRST_UPPERCASE = 65;
-    const int  LAST_UPPERCASE = 90;
+    const int FIRST_UPPERCASE =  65;
+    const int  LAST_UPPERCASE =  90;
     
-    int numDFArows=4; // dead, start, ident, number
     int i=0, j=0, currentRow=0;
+    
+    // intially we have dead, start, ident and number states/rows
+    int DFAmatrixRows=4;
     
     DFA_type* DFA = malloc(sizeof(DFA_type));
     
@@ -212,21 +237,35 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token, char** symb
     bubbleConSort(words, words_token, words_len, 1);
     bubbleConSort(symbols, symbols_token, symbols_len, 1);
     
+    for (int i=0; i<symbols_len; i++)
+    {
+        for (j=0; ;j++)
+        {
+            if (symbols[i][j]=='\0')
+                break;
+            else
+                printf("%c",symbols[i][j]);
+        }
+        printf(" ");
+    }
+    printf("\n");
+    
     // calculate number of DFA rows to accomodate (partial/complete) reserved word states
     i=0;
-    ignoreCharacter = false; // first word only, default to false
+    ignoreCharacter = false;
+    
     while ( i<words_len )
     {
         j=0;
         
         while ( words[i][j] != '\0' )
         {
-            // stays true for remainder of a word after first trip, reset when next word begins
+            // stays true for remainder of a word after first trip
             if ( (i>0) && (words[i-1][j] !=  words[i][j]))
                 ignoreCharacter = false;
             
             if ( !ignoreCharacter )
-                ++numDFArows;
+                ++DFAmatrixRows;
             
             ++j;
         }
@@ -237,6 +276,7 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token, char** symb
     // calculate number of DFA rows to accomodate (partial/complete) symbol states
     i=0;
     ignoreCharacter = false;
+    
     while ( i<symbols_len )
     {
         
@@ -249,7 +289,7 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token, char** symb
                 ignoreCharacter = false;
             
             if ( !ignoreCharacter )
-                ++numDFArows;
+                ++DFAmatrixRows;
             
             ++j;
         }
@@ -257,14 +297,18 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token, char** symb
         ignoreCharacter = true;
     }
     
-    DFA->numMatrixRows = numDFArows;
+    DFA->numMatrixRows = DFAmatrixRows;
     
     // this is for translate final matrix row -> token type
-    DFA->rowToTokenType = calloc(numDFArows, sizeof(int));
+    DFA->matrixRowToTokenType = calloc(DFAmatrixRows, sizeof(int));
     
-    DFA->matrix = malloc(sizeof(int*)*numDFArows);
-    for (i=0; i<numDFArows; i++)
-        DFA->matrix[i] = calloc(NUM_OF_INPUT_CHARS,sizeof(int)); // chars 0 through 126 are inputs in DFA matrix
+    DFA->matrix = malloc(sizeof(int*)*DFAmatrixRows);
+    for (i=0; i<DFAmatrixRows; i++)
+        DFA->matrix[i] = calloc(MAX_ASCII_INPUT+1,sizeof(int)); // chars 0-126 are inputs/columns
+    
+    
+    /* INITIALIZE MATRIX */
+    
     
     // init matrix dead row (row 0)
     // NOTE: dead row already init by calloc
@@ -282,7 +326,7 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token, char** symb
     for (i=FIRST_UPPERCASE; i<=LAST_UPPERCASE; i++)
         DFA->matrix[currentRow][i] = IDENT_STATE;
     
-    DFA->rowToTokenType[currentRow] = START_STATE;
+    DFA->matrixRowToTokenType[currentRow] = START_STATE;
     
     ++currentRow;
     
@@ -297,7 +341,7 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token, char** symb
     for (i=FIRST_UPPERCASE; i<=LAST_UPPERCASE; i++)
         DFA->matrix[currentRow][i] = IDENT_STATE;
     
-    DFA->rowToTokenType[currentRow] = IDENT_STATE;
+    DFA->matrixRowToTokenType[currentRow] = IDENT_STATE;
     
     ++currentRow;
     
@@ -306,38 +350,53 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token, char** symb
     for (i=FIRST_NUMBER; i<=LAST_NUMBER; i++)
         DFA->matrix[currentRow][i] = NUMBER_STATE;
     
-    DFA->rowToTokenType[currentRow] = NUMBER_STATE;
+    DFA->matrixRowToTokenType[currentRow] = NUMBER_STATE;
     
     ++currentRow;
     
-    // build DFA matrix rows for (partial/full) reserved words
-    ignoreCharacter = false; // first word only, default to false
+    
+    /* BUILD MATRIX ROWS FOR (PARTIAL/FULL) RESERVED WORDS */
+    
+    ignoreCharacter = false;
+    
+    // i (ordinal)  controls which which word we are on
     for (int i=0; i<words_len; i++)
     {
+        if ( i==6 )
+            printf("");
+        
+        // j (ordinal) controls which character of word we are on
         for (int j=0;  ; j++)
         {
+            
             if ( words[i][j] == '\0')
                 break;
             
+            // check if substring we've read is unique and requires a row/state be dedicated to it
             if ( (ignoreCharacter) && (words[i-1][j] != words[i][j]) )
             {
                 ignoreCharacter = false;
-                // link coresp col in proper prior row to this row
+                
+                // if this isn't the fist char of word, we need to search for proper (prior) row
+                // to add a link/state change on this input char to point tothis current state/row
                 if ( j > 0 )
                 {
                     int k=i-1;
-                    int l=currentRow;
-                    while ( (k>0) && (words[k][j-1] == words[i][j-1]) )
+                    int l=currentRow-1;
+                    // subtract number of matrix rows generated by characters in j through (end) position of word[k]
+                    l=l-lenToEnd(words[k], j);
+                    int m=255;
+                    
+                    // keep looking back 'til we find a pair that differ in same or earlier place than j and j-1
+                    while ( (m>j) && (k>0) )
                     {
-                        int m=j;
-                        while ( words[k][m] != '\0' )
-                        {
-                            --l;
-                            ++m;
-                        }
-                        --k;
+                        m=findDiffer(words[k], words[k-1]);
+                        if (m<j)
+                            break;
+                        l=l-lenToEnd(words[k-1], m);
+                        k--;
                     }
-                    --l;
+                
                     DFA->matrix[l][words[i][j]] = currentRow;
                 }
             }
@@ -364,9 +423,9 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token, char** symb
                 
                 // if there is another char in this keyword, this row is ident
                 if ( words[i][j+1] != '\0')
-                    DFA->rowToTokenType[currentRow] = IDENT_STATE;
+                    DFA->matrixRowToTokenType[currentRow] = IDENT_STATE;
                 else
-                    DFA->rowToTokenType[currentRow] = words_token[i]; // TODO: should map to reserved word's token number
+                    DFA->matrixRowToTokenType[currentRow] = words_token[i]; // TODO: should map to reserved word's token number
                 
                 ++currentRow;
             }
@@ -375,34 +434,45 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token, char** symb
     }
     
     
-    // build DFA matrix rows for (single/compound) symbols
-    ignoreCharacter = false; // first symbol (possibly compound), default to false
+    /* BUILD MATRIX ROWS FOR (PARTIAL/FULL) SYMBOLS/OPERATORS */
+    
+    ignoreCharacter = false;
+    
+    // i ordinal controls which symbol/operator we are on
     for (int i=0; i<symbols_len; i++)
     {
+        // j ordinal controls which character of symbol/operator we are considering
         for (int j=0;  ; j++)
         {
+            // stop j itterations at symbol/operator termination
             if ( symbols[i][j] == '\0')
                 break;
             
+            // check if substring we've read is unique and requires a row/state be dedicated to it
             if ( (ignoreCharacter) && (symbols[i-1][j] != symbols[i][j]) )
             {
                 ignoreCharacter = false;
-                // link coresp col in proper prior row to this row
+                
+                // if this isn't the fist char of symbol, we need to search for proper (prior) row
+                // to add a link/state change on this input char to point tothis current state/row
                 if ( j > 0 )
                 {
                     int k=i-1;
-                    int l=currentRow;
-                    while ( (k>0) && (symbols[k][j-1] == symbols[i][j-1]) )
+                    int l=currentRow-1;
+                    // subtract number of matrix rows generated by characters in j through (end) position of symbols[k]
+                    l=l-lenToEnd(symbols[k], j);
+                    int m=255;
+                    
+                    // keep looking back 'til we find a pair that differ in same or earlier place than j and j-1
+                    while ( (m>j) && (k>0) )
                     {
-                        int m=j;
-                        while ( symbols[k][m] != '\0' )
-                        {
-                            --l;
-                            ++m;
-                        }
-                        --k;
+                        m=findDiffer(symbols[k], symbols[k-1]);
+                        if (m<j)
+                            break;
+                        l=l-lenToEnd(symbols[k-1], m);
+                        k--;
                     }
-                    --l;
+                    
                     DFA->matrix[l][symbols[i][j]] = currentRow;
                 }
             }
@@ -419,9 +489,9 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token, char** symb
                 
                 // if there is another char in this symb, this row is dead state
                 if ( symbols[i][j+1] != '\0' )
-                    DFA->rowToTokenType[currentRow] = 0;
+                    DFA->matrixRowToTokenType[currentRow] = 0;
                 else
-                    DFA->rowToTokenType[currentRow] = symbols_token[i];
+                    DFA->matrixRowToTokenType[currentRow] = symbols_token[i];
                 
                 ++currentRow;
             }
@@ -441,7 +511,7 @@ void displayError(int code, int var)
     
     char* errMsg = malloc(sizeof(char)*(maxErrMsgLength+1));
     memset(errMsg, '\0', maxErrMsgLength+1);
-
+    
     switch(code)
     {
         case(1):
@@ -460,7 +530,7 @@ void displayError(int code, int var)
             // this error message required by assignment specs
             strcpy(errMsg, "Number out of acceptable range\n");
             break;
-
+            
             
         case(10):
             
@@ -546,20 +616,20 @@ void displaySourceFile(FILE* ifp){
 void  displayToken(aToken_type* t, const char* tokenNames[])
 {
     
-    if(t->t == 2)
+    if(t->type == 2)
     {
         printf("%-13s", t->val.identifier);
     }
-    else if(t->t == 3)
+    else if(t->type == 3)
     {
         printf("%-13d", t->val.number);
     }
     else
     {
-        printf("%-13s", tokenNames[t->t]);
+        printf("%-13s", tokenNames[t->type]);
     }
     
-    printf("%d\n", t->t);
+    printf("%zu\n", t->type);
     
     return;
     
@@ -571,7 +641,7 @@ void  freeToken(aToken_type* t)
     
     if(t != NULL)
     {
-        if(t->t == 2)
+        if(t->type== 2)
         {
             free(t->val.identifier);
         }
@@ -583,6 +653,20 @@ void  freeToken(aToken_type* t)
     
 } // END free token
 
+
+// returns ordinal of first position in which strings differ, -1 if identical
+// ASSUMES STRINGS PROPERLY TERMINATED
+int findDiffer(char* a, char* b)
+{
+    for (int i=0; ; i++)
+    {
+        if ( (a[i]=='\0') && (b[i]=='\0') )
+            return -1;
+        
+        if ( a[i] != b[i] )
+            return i;
+    }
+}
 
 //  returns next token starting at current position of file pointer
 aToken_type* getNextToken(FILE* cleanFile, DFA_type* DFA)
@@ -602,22 +686,17 @@ aToken_type* getNextToken(FILE* cleanFile, DFA_type* DFA)
     
     aToken_type* t = (aToken_type*)malloc(sizeof(aToken_type));
     
-    // return nullsym token on eof
-    if (feof(cleanFile))
-    {
-        t->t = 1;
-        return t;
-    }
-    
-    while(true)
+    while( true )
     {
         moveFilePointerOneBack = true;
-        
+    
         fscanf(cleanFile, "%c", &c);
         
-        if( feof(cleanFile) )
+        if ( feof(cleanFile) )
         {
-            DFAstate = DEAD_STATE;
+            if  ( length == 0 )
+                DFAstate = DEAD_STATE;
+            
             moveFilePointerOneBack = false;
             break;
         }
@@ -628,25 +707,20 @@ aToken_type* getNextToken(FILE* cleanFile, DFA_type* DFA)
             fscanf(cleanFile, "%c", &c);
         }
         
-        // handle eof-only lexeme
-        if( feof(cleanFile) && (length == 0) && isIgnoredChar(c) )
+        if( isIgnoredChar(c) )
+        {
+            // eof and all token are created, so halt
+            if ( length == 0)
+                DFAstate = DEAD_STATE;
+            
+            moveFilePointerOneBack = false;
+            break;
+        }
+        
+        // halt on character out of range
+        if( c > MAX_ASCII_INPUT )
         {
             DFAstate = DEAD_STATE;
-            moveFilePointerOneBack = false;
-            break;
-        }
-        
-        /* handle ignored characters following non-null lexeme */
-        if( (length > 0) && isIgnoredChar(c) )
-        {
-            moveFilePointerOneBack = false;
-            break;
-        }
-        
-        // stop/error on invalid column number ... BUT NOT EOF!!!
-        if( c > DFA_MATRIX_NUMBER_COLUMNS )
-        {
-            DFAstate = DEAD_STATE; // signal halt to caller
             displayError(2,c);
             break;
         }
@@ -667,16 +741,7 @@ aToken_type* getNextToken(FILE* cleanFile, DFA_type* DFA)
         if( DFAstate == DEAD_STATE )
         {
             // roll back state
-            moveFilePointerOneBack = true;
             DFAstate = DFAstate_prev;
-            break;
-        }
-        
-        // if we aren't dead, is this an identifier that's too long?
-        if( (length >= MAX_IDENTIFIER_LENGTH) && (DFAstate == IDENT_STATE) )
-        {
-            DFAstate = DEAD_STATE; // signal halt to caller
-            displayError(3, 0);
             break;
         }
         
@@ -684,6 +749,7 @@ aToken_type* getNextToken(FILE* cleanFile, DFA_type* DFA)
         lexeme[length] = c;
         
         ++length;
+        
     }
     
     lexeme[length] = '\0';
@@ -694,56 +760,66 @@ aToken_type* getNextToken(FILE* cleanFile, DFA_type* DFA)
     }
     
     //  convert state to token type and store
-    t->t = DFA->rowToTokenType[DFAstate];
+    t->type= DFA->matrixRowToTokenType[DFAstate];
     
-    switch(DFA->rowToTokenType[DFAstate])
+    // make approp token based on final state
+    switch(DFA->matrixRowToTokenType[DFAstate])
     {
-        // halt (w/o error msg)
-        case(DEAD_STATE):
-            
-            t->t = 1; // signal halt to caller
-            free(lexeme);
-            break;
-            
-        // invalid token type, i.e. invalid symbol or operator
-        case(START_STATE):
-            
-            displayError(11, 0);
-            t->t = 1; // signal halt to caller
-            free(lexeme);
-            break;
-            
-        // identifier token -- lexeme must live
-        case(IDENT_STATE):
-            
+    case(DEAD_STATE):
+        
+        t->type = NULL_TOKEN;
+        free(lexeme);
+        break;
+        
+    // invalid token type
+    case(START_STATE):
+        
+        displayError(11, 0);
+        t->type = NULL_TOKEN;
+        free(lexeme);
+        break;
+        
+    // identifier token -- lexeme must live
+    case(IDENT_STATE):
+        
+        // identifier that's too long
+        if ( length >= MAX_IDENTIFIER_LENGTH )
+        {
+            DFAstate = DEAD_STATE; // signal halt to caller
+            displayError(3, 0);
+        }
+        else
+        {
             t->val.identifier = lexeme;
+        }
+            
+        break;
+        
+    // number token -- check if number in range
+    case(NUMBER_STATE):
+        
+        sscanf(lexeme, "%d", &i);
+        if ( (i > 32767) || (i < -32768) )
+        {
+            // display error and signal halt
+            t->type         = 1;
+            DFAstate      = DEAD_STATE;
+            displayError(4, i);
             break;
-            
-        // number token
-        case(NUMBER_STATE):
-            
-            sscanf(lexeme, "%d", &i);
-            if ( (i > 32767) || (i < -32768) )
-            {
-                // display error and signal halt
-                t->t          = 1;
-                DFAstate      = DEAD_STATE;
-                displayError(4, i);
-                break;
-            }
-            else
-            {
-                t->val.number = i;
-            }
-            
-            free(lexeme);
-            break;
-            
-        // symbol token (no other values need be stored)
-        default:
-            
-            free(lexeme);
-            break;
+        }
+        else
+        {
+            t->val.number = i;
+        }
+        
+        free(lexeme);
+        break;
+        
+    // symbol or operator token -- no additional data needs to be stored
+    default:
+        
+        free(lexeme);
+        break;
     }
     
     return t;
@@ -772,11 +848,26 @@ bool isLetter(int c)
     const int  LAST_UPPERCASE = 90;
     
     if ( ((c >= FIRST_UPPERCASE) && (c <= LAST_UPPERCASE)) ||
-         ((c >= FIRST_LOWERCASE) && (c <= LAST_LOWERCASE))    )
+        ((c >= FIRST_LOWERCASE) && (c <= LAST_LOWERCASE))    )
         return true;
     
     return false;
     
+}
+
+
+// returns number of chars in string from position p to end
+// ASSUMES STRING IS PROPERLY TERMINATED AT OR AFTER p
+int lenToEnd(char* a, size_t p)
+{
+    int i=-1;
+    
+    do
+    {
+        i++;
+    } while (a[p+i] != '\0');
+    
+    return i;
 }
 
 //tiny helper function
