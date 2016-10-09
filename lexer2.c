@@ -960,7 +960,7 @@ aToken_type* getNextToken(FILE* cleanFile, DFA_type* DFA)
         
         /* if identifier is too long, show error   */
         /* and return null token to halt execution */
-        if( length >= MAX_IDENTIFIER_LENGTH )
+        if( length > MAX_IDENTIFIER_LENGTH )
         {
             t->type = NULL_TOKEN;
             displayError(3, 0);
