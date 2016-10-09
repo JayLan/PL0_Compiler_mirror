@@ -15,6 +15,8 @@
 //|  Purpose:	Assignment #2, Implement a lexical analyzer for PL/0
 //|
 //|  Notes:
+//|         DFAmaker generates a DFA matrix and state/row-to-token-type list
+//|         from
 //|===========================================================================
 
 #include "stdio.h"
@@ -64,11 +66,11 @@ struct Options {
 };
 
 typedef struct DFA {
-    char** tokenNames;
-    int** matrix;
-    int* matrixRowToTokenType;
-    int numMatrixRows;
-    int rowMatrixSymbolRowsBegin;
+    char**   tokenNames;
+    size_t** matrix;
+    size_t*  matrixRowToTokenType;
+    size_t   numMatrixRows;
+    size_t   rowMatrixSymbolRowsBegin;
 } DFA_type;
 
 
@@ -76,19 +78,19 @@ typedef struct DFA {
 /* FUNCTION PROTOTYPES */
 /*                     */
 
-void         bubbleConSort(char** list, int* indices, size_t len, int i);
-DFA_type*    DFAmaker(char** words, size_t words_len, int* words_token,
-                    char** symbols, size_t symbols_len, int* symbols_token);
-void         displayError(int code, int var);
+void         bubbleConSort(char** list, size_t* indices, size_t len, size_t i);
+DFA_type*    DFAmaker(char** words,   size_t words_len,   size_t* words_token,
+                      char** symbols, size_t symbols_len, size_t* symbols_token);
+void         displayError(size_t code, int var);
 void         displaySourceFile(FILE* ifp);
 void         displayToken(aToken_type* t, const char* tokenNames[]);
 int          findFirstDifference(char* a, char* b);
 void         freeToken(aToken_type* t);
 aToken_type* getNextToken(FILE* cleanFile, DFA_type* DFA);
-bool         isIgnoredChar(int c);
-bool         isLetter(int c);
-bool         isNumber(int c);
-int          lengthToStringEnd(char* a, size_t p);
+bool         isIgnoredChar(char c);
+bool         isLetter(char c);
+bool         isNumber(char c);
+size_t       lengthToStringEnd(char* a, size_t p);
 void         readNextChar(FILE* f, char* buff);
 int          setOptions (int argc, char* argv[], struct Options* Options);
 int          removeComments (FILE* infile, FILE* cleanFile);
@@ -104,20 +106,25 @@ int main(int argc, char* argv[])
     struct Options* optns = malloc(sizeof(struct Options));
     setOptions(argc, argv, optns);
     
-    FILE* rawFile = fopen(optns->filename, "rb+");
-    FILE* cleanFile = fopen("clean.pl0", "wb+");
+    FILE* rawFile   = fopen(optns->filename, "rb+");
+    FILE* cleanFile = fopen("clean.pl0",     "wb+");
     
-    /* reserved words */
-    char* words[]     = {"const","var","procedure","call","begin","end","else","if","then","while","do","read","write","odd"};
-    int words_token[] = {     28,   29,         30,    27,     21,   22,    33,  23,    24,    25,   26,    32,     31,    8};
+    /* reserved words and token values... can be given in any order (as long */
+    /* as words/token values are specified in the same relative ordering     */
+    char* words[]        = {"const","var","procedure","call","begin","end","else","if","then","while","do","read","write","odd"};
+    size_t words_token[] = {     28,   29,         30,    27,     21,   22,    33,  23,    24,    25,   26,    32,     31,    8};
     size_t words_len = sizeof(words) / sizeof(char *);
     
-    /* symbols and operators */
-    char* syms[]     = {"+","-","*","/","=","<>","<=","<",">=",">",":=",",",";",".","(",")"};
-    int syms_token[] = {  4,  5,  6,  7,  9,  10,  12, 11,  14, 13,  20, 17, 18, 19, 15, 16};
+    /* symbols/operatorsand token values... can be given in any order (as long */
+    /* as symbols/token values are specified in the same relative ordering     */
+    char* syms[]        = {"+","-","*","/","=","<>","<=","<",">=",">",":=",",",";",".","(",")"};
+    size_t syms_token[] = {  4,  5,  6,  7,  9,  10,  12, 11,  14, 13,  20, 17, 18, 19, 15, 16};
     size_t syms_len = sizeof(syms) / sizeof(char *);
     
-    /* token names - must be ordered by their (sequential) token-type values (0,1,2,...) */
+    /* token names - must be ordered by their (sequential) token-type values (0,1,2,...)   */
+    /* this list could be generated from the arrays of words, symbols and their token      */
+    /* values above BUT that would be restricting, e.g. we couldn't have plussym displayed */
+    /* as plussym, only the actual operator "+" it represents                              */
     const char* tokenNames[] = {
         "PLACE_HOLDER", "nulsym", "identsym", "numbersym", "+", "-", "*", "/",
         "odd", "=", "<>", "<", "<=", ">", ">=", "(", ")", ",", ";", ".", ":=",
@@ -185,7 +192,7 @@ int main(int argc, char* argv[])
 
 /* bubble sorts one array based on its values (strcmp) and simultaneously */
 /* reorders other array using same pattern                                */
-void bubbleConSort(char** list, int* indices, size_t len, int x)
+void bubbleConSort(char** list, size_t* indices, size_t len, size_t x)
 {
     if( (list == NULL) || (indices == NULL) )
         return;
@@ -196,9 +203,9 @@ void bubbleConSort(char** list, int* indices, size_t len, int x)
         return;
     }
     
-    for( int i=0; i<len; i++ )
+    for( size_t i=0; i<len; i++ )
     {
-        for( int j=i+1; j<len; j++ )
+        for( size_t j=i+1; j<len; j++ )
         {
             if( ((x==1) && (strcmp(list[i],list[j]) > 0)) ||
                 ((x==2) && (indices[i] > indices[j]))        )
@@ -207,7 +214,7 @@ void bubbleConSort(char** list, int* indices, size_t len, int x)
                 list[i] = list[j];
                 list[j] = t;
                 
-                int s    = indices[i];
+                size_t s   = indices[i];
                 indices[i] = indices[j];
                 indices[j] = s;
             }
@@ -223,8 +230,8 @@ void bubbleConSort(char** list, int* indices, size_t len, int x)
 /* corresponding to inputs for ASCII chars 0-126 (MAX_ASCII_INPUT) and    */
 /* rows corresponding to dead, start, identifiers, numbers, and all the   */
 /* partial and full strings of the reserved words and symbols/operators   */
-DFA_type* DFAmaker(char** words, size_t words_len, int* words_token,
-                   char** symbols, size_t symbols_len, int* symbols_token)
+DFA_type* DFAmaker(char** words,   size_t words_len,   size_t* words_token,
+                   char** symbols, size_t symbols_len, size_t* symbols_token)
 {
     
     /*                */
@@ -236,14 +243,14 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token,
     /* moment, do we need to add a new row/state to the DFA matrix  */
     bool ignoreCharacter = false;
     
-    int i=0, j=0;
+    size_t i=0, j=0;
     
     /* tracks which row of DFA matrix (and rows-to-token-type list) */
     /* we are constructing at the moment                            */
     size_t currentRow=0;
     
     /* intially we have: dead, start, ident and number states/rows */
-    int DFAmatrixRows=4;
+    size_t DFAmatrixRows=4;
     
     DFA_type* DFA = malloc(sizeof(DFA_type));
     
@@ -342,14 +349,14 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token,
     
     
     /* allocate space for our matrix row/state-to-token-type list */
-    DFA->matrixRowToTokenType = calloc(DFAmatrixRows, sizeof(int));
+    DFA->matrixRowToTokenType = calloc(DFAmatrixRows, sizeof(size_t));
     
     /* allocate space for our DFA matrix and default all state */
     /* transitions to lead to the dead state row (0)           */
-    DFA->matrix = malloc(sizeof(int*)*DFAmatrixRows);
+    DFA->matrix = malloc(sizeof(size_t*)*DFAmatrixRows);
     
     for( i=0; i<DFAmatrixRows; i++ )
-        DFA->matrix[i] = calloc(MAX_ASCII_INPUT+1,sizeof(int));
+        DFA->matrix[i] = calloc(MAX_ASCII_INPUT+1,sizeof(size_t));
     
     /* no need to init matrix dead-state row (row 0) - already done by calloc */
     ++currentRow;
@@ -407,10 +414,10 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token,
     ignoreCharacter = false;
     
     /* i (ordinal) controls which which word we are considering */
-    for( int i=0; i<words_len; i++ )
+    for( size_t i=0; i<words_len; i++ )
     {
         /* j (ordinal) controls which character of word we are considering */
-        for( int j=0; ; j++ )
+        for( size_t j=0; ; j++ )
         {
             
             if( words[i][j] == '\0' )
@@ -430,11 +437,11 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token,
                 {
                     /* k controls which prior word's (word[k]) related states we */
                     /* are considering adding a next state entry to for this row */
-                    int k=i-1;
+                    size_t k=i-1;
                     
                     /* l controls which particular row we are considering adding */
                     /* a next-state entry to for this row/state                  */
-                    int l=(int)currentRow-1;
+                    size_t l=currentRow-1;
                     
                     /* decrement l by the number of rows in the matrix preceeding */
                     /* this one dedicated to states generated by the chars in     */
@@ -445,7 +452,7 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token,
                     /* move back through pairs of adjacent words until we find */
                     /* a pair that differ in the same or an earlier place than */
                     /* than this pair differs (j)                              */
-                    int m=255;
+                    size_t m=255;
                     while( (m>j) && (k>0) )
                     {
                         m = findFirstDifference(words[k], words[k-1]);
@@ -464,7 +471,7 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token,
                     }
                 
                     /* create next-state for state on row l that points to this row */
-                    DFA->matrix[l][words[i][j]] = (int)currentRow;
+                    DFA->matrix[l][words[i][j]] = currentRow;
                 }
             }
             
@@ -474,22 +481,22 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token,
             {
                 /* if first letter of word, point corresp col in start row here */
                 if( j == 0 )
-                    DFA->matrix[1][words[i][j]] = (int)currentRow;
+                    DFA->matrix[1][words[i][j]] = currentRow;
                 
                 /* init next-state in this row (all others set to dead by calloc */
-                for( int k=FIRST_NUMBER;    k<=LAST_NUMBER;    k++ )
+                for( size_t k=FIRST_NUMBER;    k<=LAST_NUMBER;    k++ )
                     DFA->matrix[currentRow][k] = IDENT_STATE;
                 
-                for( int k=FIRST_LOWERCASE; k<=LAST_LOWERCASE; k++ )
+                for( size_t k=FIRST_LOWERCASE; k<=LAST_LOWERCASE; k++ )
                     DFA->matrix[currentRow][k] = IDENT_STATE;
                 
-                for( int k=FIRST_UPPERCASE; k<=LAST_UPPERCASE; k++ )
+                for( size_t k=FIRST_UPPERCASE; k<=LAST_UPPERCASE; k++ )
                     DFA->matrix[currentRow][k] = IDENT_STATE;
                 
                 /* if there is another char in this word, point corresp column */
                 /* to the next row                                             */
                 if ( words[i][j+1] != '\0' )
-                    DFA->matrix[currentRow][words[i][j+1]] = (int)currentRow+1;
+                    DFA->matrix[currentRow][words[i][j+1]] = currentRow+1;
                 
                 /* if there is another char in this word, the corresponding   */
                 /* row in the row-to-token-type list needs to be set to ident */
@@ -520,14 +527,14 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token,
     /* nothing earlier in the list to compare it to anyway) */
     ignoreCharacter = false;
     
-    DFA->rowMatrixSymbolRowsBegin = (int)currentRow;
+    DFA->rowMatrixSymbolRowsBegin = currentRow;
     
     /* i (ordinal) controls which which symbol/operator we are considering */
     ignoreCharacter = false;
-    for( int i=0; i<symbols_len; i++ )
+    for( size_t i=0; i<symbols_len; i++ )
     {
         /* j (ordinal) controls which character of word we are considering */
-        for( int j=0;  ; j++)
+        for( size_t j=0;  ; j++)
         {
             
             if( symbols[i][j] == '\0')
@@ -547,11 +554,11 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token,
                 {
                     /* k controls which prior symbol's (symbols[k]) related states  */
                     /* we are considering adding a next-state entry to for this row */
-                    int k=i-1;
+                    size_t k=i-1;
                     
                     /* l controls which particular row we are considering adding */
                     /* a next-state entry to for this row/state                  */
-                    int l=(int)currentRow-1;
+                    size_t l=currentRow-1;
                     
                     /* decrement l by the number of rows in the matrix preceeding */
                     /* this one dedicated to states generated by the chars in     */
@@ -562,7 +569,7 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token,
                     /* move back through pairs of adjacent symbols until we find */
                     /* a pair that differ in the same or an earlier place than   */
                     /* than this pair differs (j)                                */
-                    int m=255;
+                    size_t m=255;
                     while( (m>j) && (k>0) )
                     {
                         m = findFirstDifference(symbols[k], symbols[k-1]);
@@ -581,7 +588,7 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token,
                     }
 
                     /* create next-state for state on row l that points to this row */
-                    DFA->matrix[l][symbols[i][j]] = (int)currentRow;
+                    DFA->matrix[l][symbols[i][j]] = currentRow;
                 }
             }
             
@@ -591,12 +598,12 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token,
             {
                 /* if first letter of word, point corresp col in start row here */
                 if( j == 0 )
-                    DFA->matrix[1][symbols[i][j]] = (int)currentRow;
+                    DFA->matrix[1][symbols[i][j]] = currentRow;
                 
                 /* if there is another char in this symbol, point   */
                 /* corresp column on this row to the next row/state */
                 if( symbols[i][j+1] != '\0' )
-                    DFA->matrix[currentRow][symbols[i][j+1]] = (int)currentRow+1;
+                    DFA->matrix[currentRow][symbols[i][j+1]] = currentRow+1;
                 
                 /* if there is another char in this symbol, the corresponding */
                 /* row in the row-to-token-type list needs to be set to dead  */
@@ -622,9 +629,9 @@ DFA_type* DFAmaker(char** words, size_t words_len, int* words_token,
 
 
 /* displays errors */
-void displayError(int code, int var)
+void displayError(size_t code, int var)
 {
-    const int maxErrMsgLength = 200;
+    const size_t maxErrMsgLength = 200;
     
     char* errMsg = malloc(sizeof(char)*(maxErrMsgLength+1));
     memset(errMsg, '\0', maxErrMsgLength+1);
@@ -781,13 +788,13 @@ void  freeToken(aToken_type* t)
 /* ASSUMES STRINGS PROPERLY TERMINATED                                        */
 int findFirstDifference(char* a, char* b)
 {
-    for(int i=0; ; i++)
+    for( size_t i=0; ; i++ )
     {
         if( (a[i]=='\0') && (b[i]=='\0') )
             return -1;
         
         if( a[i] != b[i] )
-            return i;
+            return (int)i;
     }
 
 } // END findFirstDifference
@@ -810,12 +817,15 @@ aToken_type* getNextToken(FILE* cleanFile, DFA_type* DFA)
     /* we read in next lexeme (when getNextToken is next called) */
     bool moveFilePointerOneBack = true;
     
-    int length         = 0;
-    int i              = 0;
+    size_t length = 0;
+    
+    /* n is used when converting number read in as   */
+    /* array of chars into an integer... could be <0 */
+    int n = 0;
     
     /* ending in START_STATE indicates an invalid token was read */
-    int DFAstate       = START_STATE;
-    int DFAstate_prev  = DEAD_STATE;
+    size_t DFAstate      = START_STATE;
+    size_t DFAstate_prev = DEAD_STATE;
     
     /* longest identifier is 12 but a number > 12 digits with   */
     /* leading 0's could be valid length once leading 0's are   */
@@ -898,15 +908,15 @@ aToken_type* getNextToken(FILE* cleanFile, DFA_type* DFA)
             break;
         }
         
-        /* if current state is dead, previous was a symbol/operator, & input  */
-        /* was non-num/letter, we have an invalid token (bad symbol/operator) */
-        if ( (DFAstate == DEAD_STATE)
-              && (DFAstate_prev >= DFA->rowMatrixSymbolRowsBegin)
-              && !isLetter(c) && !isNumber(c) )
-        {
-            DFAstate = START_STATE;
-            break;
-        }
+//        /* if current state is dead, previous was a symbol/operator, & input  */
+//        /* was non-num/letter, we have an invalid token (bad symbol/operator) */
+//        if ( (DFAstate == DEAD_STATE)
+//              && (DFAstate_prev >= DFA->rowMatrixSymbolRowsBegin)
+//              && !isLetter(c) && !isNumber(c) )
+//        {
+//            DFAstate = START_STATE;
+//            break;
+//        }
         
         if( DFAstate == DEAD_STATE )
         {
@@ -974,18 +984,18 @@ aToken_type* getNextToken(FILE* cleanFile, DFA_type* DFA)
     /* number token - convert lexeme array to number and store in token */
     case(NUMBER_STATE):
         
-        sscanf(lexeme, "%d", &i);
+        sscanf(lexeme, "%d", &n);
             
         /* if value out-of-range, display error and */
         /* return null token to halt execution      */
-        if( (i > 32767) || (i < -32768) )
+        if( (n > 32767) || (n < -32768) )
         {
             t->type = NULL_TOKEN;
-            displayError(4, i);
+            displayError(4, n);
         }
         else
         {
-            t->val.number = i;
+            t->val.number = n;
         }
         
         free(lexeme);
@@ -1004,7 +1014,7 @@ aToken_type* getNextToken(FILE* cleanFile, DFA_type* DFA)
 
 
 /* returns true if char should be ignored by lexer */
-bool isIgnoredChar(int c)
+bool isIgnoredChar(char c)
 {
     const int tab=9, cr=13, lf=10, space=32;
     
@@ -1019,7 +1029,7 @@ bool isIgnoredChar(int c)
 
 
 /* returns true if char is a letter */
-bool isLetter(int c)
+bool isLetter(char c)
 {
     if( ((c >= FIRST_UPPERCASE) && (c <= LAST_UPPERCASE)) ||
         ((c >= FIRST_LOWERCASE) && (c <= LAST_LOWERCASE))   )
@@ -1033,7 +1043,7 @@ bool isLetter(int c)
 
 
 /* returns true if character is a digit */
-bool isNumber(int c)
+bool isNumber(char c)
 {
     if( (c>=FIRST_NUMBER) && (c<=LAST_NUMBER) )
     {
@@ -1047,7 +1057,7 @@ bool isNumber(int c)
 
 /* returns number of chars in string from position p to termination */
 /* ASSUMES STRING IS PROPERLY TERMINATED AT OR AFTER p              */
-int lengthToStringEnd(char* a, size_t p)
+size_t lengthToStringEnd(char* a, size_t p)
 {
     int i=-1;
     
@@ -1057,7 +1067,7 @@ int lengthToStringEnd(char* a, size_t p)
     }
     while( a[p+i] != '\0' );
     
-    return i;
+    return (size_t)i;
     
 } // END lengthToStringEnd
 
@@ -1153,8 +1163,7 @@ int setOptions(int argc, char* argv[], struct Options* optns){
     strcpy(optns->filename, "");
     
     /* read args */
-    int i;
-    for( i=1; i<argc; ++i ){
+    for( size_t i=1; i<argc; ++i ){
         if( strcmp(argv[i], "--source") == 0 )
         {
             optns->show_source = true;
