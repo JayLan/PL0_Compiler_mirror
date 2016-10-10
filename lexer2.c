@@ -15,8 +15,9 @@
 //|  Purpose:	Assignment #2, Implement a lexical analyzer for PL/0
 //|
 //|  Notes:
-//|         DFAmaker generates a DFA matrix and state/row-to-token-type list
-//|         from
+//|         DFAmaker generates a DFA next-state matrix and
+//|         a state/row-to-token-type list from
+//|
 //|===========================================================================
 
 #include "stdio.h"
@@ -59,18 +60,20 @@ typedef struct
     
 } aToken_type;
 
-struct Options {
+struct Options
+{
     bool show_source;
     bool show_clean;
     char filename[255];
 };
 
-typedef struct DFA {
+typedef struct DFA
+{
     char**   tokenNames;
-    size_t** matrix;
-    size_t*  matrixRowToTokenType;
+    size_t** nextStateMatrix;
+    size_t*  stateToTokenTypeList;
     size_t   numMatrixRows;
-    size_t   rowMatrixSymbolRowsBegin;
+    size_t   numFirstSymbolRowInMatrix;
 } DFA_type;
 
 
@@ -78,9 +81,12 @@ typedef struct DFA {
 /* FUNCTION PROTOTYPES */
 /*                     */
 
+
 void         bubbleConSort(char** list, size_t* indices, size_t len, size_t i);
 DFA_type*    DFAmaker(char** words,   size_t words_len,   size_t* words_token,
                       char** symbols, size_t symbols_len, size_t* symbols_token);
+void         DFAmatrixRowInit(size_t** matrix, size_t rowNumber, size_t initStateForNumbers,
+                              size_t initStateForUppercase, size_t initStateForLowercase );
 void         displayError(size_t code, int var);
 void         displaySourceFile(FILE* ifp);
 void         displayToken(aToken_type* t, const char* tokenNames[]);
@@ -96,8 +102,14 @@ int          setOptions (int argc, char* argv[], struct Options* Options);
 int          removeComments (FILE* infile, FILE* cleanFile);
 
 
+/*           */
+/* FUNCTIONS */
+/*           */
+
+
 int main(int argc, char* argv[])
 {
+    
     /*                */
     /* VARIABLES, ETC */
     /*                */
@@ -130,7 +142,7 @@ int main(int argc, char* argv[])
         "odd", "=", "<>", "<", "<=", ">", ">=", "(", ")", ",", ";", ".", ":=",
         "begin", "end", "if", "then", "while", "do", "call", "const", "var",
         "procedure", "write", "read", "else"};
-
+    
     
     /*           */
     /* EXECUTION */
@@ -208,7 +220,7 @@ void bubbleConSort(char** list, size_t* indices, size_t len, size_t x)
         for( size_t j=i+1; j<len; j++ )
         {
             if( ((x==1) && (strcmp(list[i],list[j]) > 0)) ||
-                ((x==2) && (indices[i] > indices[j]))        )
+               ((x==2) && (indices[i] > indices[j]))        )
             {
                 char* t = list[i];
                 list[i] = list[j];
@@ -349,56 +361,42 @@ DFA_type* DFAmaker(char** words,   size_t words_len,   size_t* words_token,
     
     
     /* allocate space for our matrix row/state-to-token-type list */
-    DFA->matrixRowToTokenType = calloc(DFAmatrixRows, sizeof(size_t));
+    DFA->stateToTokenTypeList = calloc(DFAmatrixRows, sizeof(size_t));
     
-    /* allocate space for our DFA matrix and default all state */
+    /* allocate space for our DFA nextStateMatrix and default all state */
     /* transitions to lead to the dead state row (0)           */
-    DFA->matrix = malloc(sizeof(size_t*)*DFAmatrixRows);
+    DFA->nextStateMatrix = malloc(sizeof(size_t*)*DFAmatrixRows);
     
     for( i=0; i<DFAmatrixRows; i++ )
-        DFA->matrix[i] = calloc(MAX_ASCII_INPUT+1,sizeof(size_t));
+        DFA->nextStateMatrix[i] = calloc(MAX_ASCII_INPUT+1,sizeof(size_t));
     
     /* no need to init matrix dead-state row (row 0) - already done by calloc */
     ++currentRow;
     
-    /* init next states from start-state row (1) to identifier for all      */
-    /* letters, number for digits ... all others are already init by calloc */
-    for( i=FIRST_NUMBER; i<=LAST_NUMBER; i++ )
-        DFA->matrix[currentRow][i] = NUMBER_STATE;
-    
-    for( i=FIRST_LOWERCASE; i<=LAST_LOWERCASE; i++ )
-        DFA->matrix[currentRow][i] = IDENT_STATE;
-    
-    for( i=FIRST_UPPERCASE; i<=LAST_UPPERCASE; i++ )
-        DFA->matrix[currentRow][i] = IDENT_STATE;
+    /*  init current row/state (start state) of DFA next-state matrix */
+    DFAmatrixRowInit(DFA->nextStateMatrix, currentRow,
+                     NUMBER_STATE, IDENT_STATE, IDENT_STATE);
     
     /* START_STATE is a ficticious token type used as an internal */
     /* indicator that an invalid token was read in                */
-    DFA->matrixRowToTokenType[currentRow] = START_STATE;
+    DFA->stateToTokenTypeList[currentRow] = START_STATE;
     
     ++currentRow;
     
-    /* set next-states for identifier row (2) to ident on all letters */
-    /* and numbers ... all others are init by calloc (to DEAD_STATE)  */
-    for( i=FIRST_NUMBER; i<=LAST_NUMBER; i++ )
-        DFA->matrix[currentRow][i] = IDENT_STATE;
+    /*  init current row of DFA next-state matrix */
+    DFAmatrixRowInit(DFA->nextStateMatrix, currentRow,
+                     IDENT_STATE, IDENT_STATE, IDENT_STATE);
     
-    for( i=FIRST_LOWERCASE; i<=LAST_LOWERCASE; i++ )
-        DFA->matrix[currentRow][i] = IDENT_STATE;
-    
-    for( i=FIRST_UPPERCASE; i<=LAST_UPPERCASE; i++ )
-        DFA->matrix[currentRow][i] = IDENT_STATE;
-    
-    DFA->matrixRowToTokenType[currentRow] = IDENT_STATE;
+    DFA->stateToTokenTypeList[currentRow] = IDENT_STATE;
     
     ++currentRow;
     
     /* set next-states for number row (2) to number on all digits... */
     /* all others are init by calloc (to DEAD_STATE)                 */
     for( i=FIRST_NUMBER; i<=LAST_NUMBER; i++ )
-        DFA->matrix[currentRow][i] = NUMBER_STATE;
+        DFA->nextStateMatrix[currentRow][i] = NUMBER_STATE;
     
-    DFA->matrixRowToTokenType[currentRow] = NUMBER_STATE;
+    DFA->stateToTokenTypeList[currentRow] = NUMBER_STATE;
     
     ++currentRow;
     
@@ -447,7 +445,7 @@ DFA_type* DFAmaker(char** words,   size_t words_len,   size_t* words_token,
                     /* this one dedicated to states generated by the chars in     */
                     /* word[k] at and after the position (j) in which word[i] and */
                     /* word[k] first differ                                       */
-                    l=l-lengthToStringEnd(words[k], j);
+                    l -= lengthToStringEnd(words[k], j);
                     
                     /* move back through pairs of adjacent words until we find */
                     /* a pair that differ in the same or an earlier place than */
@@ -469,9 +467,9 @@ DFA_type* DFAmaker(char** words,   size_t words_len,   size_t* words_token,
                         
                         k--;
                     }
-                
+                    
                     /* create next-state for state on row l that points to this row */
-                    DFA->matrix[l][words[i][j]] = currentRow;
+                    DFA->nextStateMatrix[l][words[i][j]] = currentRow;
                 }
             }
             
@@ -481,32 +479,26 @@ DFA_type* DFAmaker(char** words,   size_t words_len,   size_t* words_token,
             {
                 /* if first letter of word, point corresp col in start row here */
                 if( j == 0 )
-                    DFA->matrix[1][words[i][j]] = currentRow;
+                    DFA->nextStateMatrix[1][words[i][j]] = currentRow;
                 
-                /* init next-state in this row (all others set to dead by calloc */
-                for( size_t k=FIRST_NUMBER;    k<=LAST_NUMBER;    k++ )
-                    DFA->matrix[currentRow][k] = IDENT_STATE;
-                
-                for( size_t k=FIRST_LOWERCASE; k<=LAST_LOWERCASE; k++ )
-                    DFA->matrix[currentRow][k] = IDENT_STATE;
-                
-                for( size_t k=FIRST_UPPERCASE; k<=LAST_UPPERCASE; k++ )
-                    DFA->matrix[currentRow][k] = IDENT_STATE;
+                /*  init current row of DFA next-state matrix */
+                DFAmatrixRowInit(DFA->nextStateMatrix, currentRow,
+                                 IDENT_STATE, IDENT_STATE, IDENT_STATE);
                 
                 /* if there is another char in this word, point corresp column */
                 /* to the next row                                             */
                 if ( words[i][j+1] != '\0' )
-                    DFA->matrix[currentRow][words[i][j+1]] = currentRow+1;
+                    DFA->nextStateMatrix[currentRow][words[i][j+1]] = currentRow+1;
                 
                 /* if there is another char in this word, the corresponding   */
                 /* row in the row-to-token-type list needs to be set to ident */
                 if ( words[i][j+1] != '\0' )
-                    DFA->matrixRowToTokenType[currentRow] = IDENT_STATE;
+                    DFA->stateToTokenTypeList[currentRow] = IDENT_STATE;
                 
                 /* if this is last letter, corresponding row in row-to-token-type */
                 /* list needs to be set to token-type for reserved word (word[i]) */
                 if ( words[i][j+1] == '\0' )
-                    DFA->matrixRowToTokenType[currentRow] = words_token[i];
+                    DFA->stateToTokenTypeList[currentRow] = words_token[i];
                 
                 ++currentRow;
             }
@@ -527,7 +519,7 @@ DFA_type* DFAmaker(char** words,   size_t words_len,   size_t* words_token,
     /* nothing earlier in the list to compare it to anyway) */
     ignoreCharacter = false;
     
-    DFA->rowMatrixSymbolRowsBegin = currentRow;
+    DFA->numFirstSymbolRowInMatrix = currentRow;
     
     /* i (ordinal) controls which which symbol/operator we are considering */
     ignoreCharacter = false;
@@ -554,22 +546,22 @@ DFA_type* DFAmaker(char** words,   size_t words_len,   size_t* words_token,
                 {
                     /* k controls which prior symbol's (symbols[k]) related states  */
                     /* we are considering adding a next-state entry to for this row */
-                    size_t k=i-1;
+                    size_t k = i-1;
                     
                     /* l controls which particular row we are considering adding */
                     /* a next-state entry to for this row/state                  */
-                    size_t l=currentRow-1;
+                    size_t l = currentRow-1;
                     
                     /* decrement l by the number of rows in the matrix preceeding */
                     /* this one dedicated to states generated by the chars in     */
                     /* symbols[k] at/after the position (j) in which symbols[i]   */
                     /* and symbols[k] first differ                                */
-                    l = l-lengthToStringEnd(symbols[k], j);
+                    l -= lengthToStringEnd(symbols[k], j);
                     
                     /* move back through pairs of adjacent symbols until we find */
                     /* a pair that differ in the same or an earlier place than   */
                     /* than this pair differs (j)                                */
-                    size_t m=255;
+                    size_t m=j+1;
                     while( (m>j) && (k>0) )
                     {
                         m = findFirstDifference(symbols[k], symbols[k-1]);
@@ -582,13 +574,13 @@ DFA_type* DFAmaker(char** words,   size_t words_len,   size_t* words_token,
                         /* of rows in the matrix dedicated to states generated by  */
                         /* the chars in symbols[k] at and after the first position */
                         /* (m) in which symbols[k-1] differs from symbols[k]       */
-                        l = l-lengthToStringEnd(symbols[k-1], m);
+                        l -= lengthToStringEnd(symbols[k-1], m);
                         
                         k--;
                     }
-
+                    
                     /* create next-state for state on row l that points to this row */
-                    DFA->matrix[l][symbols[i][j]] = currentRow;
+                    DFA->nextStateMatrix[l][symbols[i][j]] = currentRow;
                 }
             }
             
@@ -598,27 +590,27 @@ DFA_type* DFAmaker(char** words,   size_t words_len,   size_t* words_token,
             {
                 /* if first letter of word, point corresp col in start row here */
                 if( j == 0 )
-                    DFA->matrix[1][symbols[i][j]] = currentRow;
+                    DFA->nextStateMatrix[1][symbols[i][j]] = currentRow;
                 
                 /* if there is another char in this symbol, point   */
                 /* corresp column on this row to the next row/state */
                 if( symbols[i][j+1] != '\0' )
-                    DFA->matrix[currentRow][symbols[i][j+1]] = currentRow+1;
+                    DFA->nextStateMatrix[currentRow][symbols[i][j+1]] = currentRow+1;
                 
                 /* if there is another char in this symbol, the corresponding */
                 /* row in the row-to-token-type list needs to be set to dead  */
                 if( symbols[i][j+1] != '\0' )
-                    DFA->matrixRowToTokenType[currentRow] = 0;
+                    DFA->stateToTokenTypeList[currentRow] = 0;
                 
                 /* if this is last char, corresponding row in the row-to-token-type */
                 /* list needs to be set to the token-type for this symbol/operator  */
                 if( symbols[i][j+1] == '\0' )
-                    DFA->matrixRowToTokenType[currentRow] = symbols_token[i];
+                    DFA->stateToTokenTypeList[currentRow] = symbols_token[i];
                 
                 ++currentRow;
             }
         }
-    
+        
         /* default true all sybols/operators after the first */
         ignoreCharacter = true;
     }
@@ -626,6 +618,32 @@ DFA_type* DFAmaker(char** words,   size_t words_len,   size_t* words_token,
     return DFA;
     
 } // END DFAmaker
+
+
+/* initializes a DFA next-state matrix row             */
+/* ASSUMES MATRIX NON-NULL AND CALLOC'D DEAD_STATE (0) */
+void DFAmatrixRowInit(size_t** matrix, size_t rowNumber, size_t initStateForNumbers,
+                      size_t initStateForUppercase, size_t initStateForLowercase  )
+{
+    
+    for( size_t k=FIRST_NUMBER;    k<=LAST_NUMBER;    k++ )
+    {
+        matrix[rowNumber][k] = initStateForNumbers;
+    }
+    
+    for( size_t k=FIRST_LOWERCASE; k<=LAST_LOWERCASE; k++ )
+    {
+        matrix[rowNumber][k] = initStateForLowercase;
+    }
+    
+    for( size_t k=FIRST_UPPERCASE; k<=LAST_UPPERCASE; k++ )
+    {
+        matrix[rowNumber][k] = initStateForUppercase;
+    }
+    
+    return;
+    
+} // END DFAmatrixRowInit
 
 
 /* displays errors */
@@ -796,7 +814,7 @@ int findFirstDifference(char* a, char* b)
         if( a[i] != b[i] )
             return (int)i;
     }
-
+    
 } // END findFirstDifference
 
 
@@ -848,9 +866,9 @@ aToken_type* getNextToken(FILE* cleanFile, DFA_type* DFA)
     {
         /* default to moving pointer back after lexeme read */
         moveFilePointerOneBack = true;
-    
+        
         fscanf(cleanFile, "%c", &c);
-    
+        
         /* if EOF, and lexeme has no chars, nothing to do */
         /* so set up return of null token to signal done  */
         /* (ending in DEAD_STATE returns null token)      */
@@ -895,12 +913,12 @@ aToken_type* getNextToken(FILE* cleanFile, DFA_type* DFA)
         
         /* store current state and get next state */
         DFAstate_prev = DFAstate;
-        DFAstate = DFA->matrix[DFAstate][c];
+        DFAstate = DFA->nextStateMatrix[DFAstate][c];
         
         /* if current state is dead, previous was a number, and input was */
         /* letter we consider it an identifier that started with a number */
         if( (DFAstate == DEAD_STATE)
-             && (DFAstate_prev == NUMBER_STATE) && isLetter(c) )
+           && (DFAstate_prev == NUMBER_STATE) && isLetter(c) )
         {
             /* display error and set up null token return to signal halt */
             displayError(10, 0);
@@ -908,15 +926,15 @@ aToken_type* getNextToken(FILE* cleanFile, DFA_type* DFA)
             break;
         }
         
-//        /* if current state is dead, previous was a symbol/operator, & input  */
-//        /* was non-num/letter, we have an invalid token (bad symbol/operator) */
-//        if ( (DFAstate == DEAD_STATE)
-//              && (DFAstate_prev >= DFA->rowMatrixSymbolRowsBegin)
-//              && !isLetter(c) && !isNumber(c) )
-//        {
-//            DFAstate = START_STATE;
-//            break;
-//        }
+        //        /* if current state is dead, previous was a symbol/operator, & input  */
+        //        /* was non-num/letter, we have an invalid token (bad symbol/operator) */
+        //        if ( (DFAstate == DEAD_STATE)
+        //              && (DFAstate_prev >= DFA->numFirstSymbolRowInMatrix)
+        //              && !isLetter(c) && !isNumber(c) )
+        //        {
+        //            DFAstate = START_STATE;
+        //            break;
+        //        }
         
         if( DFAstate == DEAD_STATE )
         {
@@ -947,65 +965,65 @@ aToken_type* getNextToken(FILE* cleanFile, DFA_type* DFA)
     }
     
     /*  convert state/row in matrix to token type */
-    t->type= DFA->matrixRowToTokenType[DFAstate];
+    t->type= DFA->stateToTokenTypeList[DFAstate];
     
-    switch(DFA->matrixRowToTokenType[DFAstate])
+    switch(DFA->stateToTokenTypeList[DFAstate])
     {
-    case(DEAD_STATE):
-        
-        t->type = NULL_TOKEN;
-        free(lexeme);
-        break;
-        
-    /* invalid token type */
-    case(START_STATE):
-        
-        displayError(11, 0);
-        t->type = NULL_TOKEN;
-        free(lexeme);
-        break;
-        
-    /* identifier token - store lexeme in token */
-    case(IDENT_STATE):
-        
-        /* if identifier is too long, show error   */
-        /* and return null token to halt execution */
-        if( length > MAX_IDENTIFIER_LENGTH )
-        {
-            t->type = NULL_TOKEN;
-            displayError(3, 0);
-        }
-        else
-        {
-            t->val.identifier = lexeme;
-        }
-        break;
-        
-    /* number token - convert lexeme array to number and store in token */
-    case(NUMBER_STATE):
-        
-        sscanf(lexeme, "%d", &n);
+        case(DEAD_STATE):
             
-        /* if value out-of-range, display error and */
-        /* return null token to halt execution      */
-        if( (n > 32767) || (n < -32768) )
-        {
             t->type = NULL_TOKEN;
-            displayError(4, n);
-        }
-        else
-        {
-            t->val.number = n;
-        }
-        
-        free(lexeme);
-        break;
-        
-    /* symbol or operator token - token type is all we need to store */
-    default:
-        
-        free(lexeme);
-        break;
+            free(lexeme);
+            break;
+            
+            /* invalid token type */
+        case(START_STATE):
+            
+            displayError(11, 0);
+            t->type = NULL_TOKEN;
+            free(lexeme);
+            break;
+            
+            /* identifier token - store lexeme in token */
+        case(IDENT_STATE):
+            
+            /* if identifier is too long, show error   */
+            /* and return null token to halt execution */
+            if( length > MAX_IDENTIFIER_LENGTH )
+            {
+                t->type = NULL_TOKEN;
+                displayError(3, 0);
+            }
+            else
+            {
+                t->val.identifier = lexeme;
+            }
+            break;
+            
+            /* number token - convert lexeme array to number and store in token */
+        case(NUMBER_STATE):
+            
+            sscanf(lexeme, "%d", &n);
+            
+            /* if value out-of-range, display error and */
+            /* return null token to halt execution      */
+            if( (n > 32767) || (n < -32768) )
+            {
+                t->type = NULL_TOKEN;
+                displayError(4, n);
+            }
+            else
+            {
+                t->val.number = n;
+            }
+            
+            free(lexeme);
+            break;
+            
+            /* symbol or operator token - token type is all we need to store */
+        default:
+            
+            free(lexeme);
+            break;
     }
     
     return t;
@@ -1024,7 +1042,7 @@ bool isIgnoredChar(char c)
     }
     
     return false;
-
+    
 } // END IsIgnoredChar
 
 
@@ -1032,7 +1050,7 @@ bool isIgnoredChar(char c)
 bool isLetter(char c)
 {
     if( ((c >= FIRST_UPPERCASE) && (c <= LAST_UPPERCASE)) ||
-        ((c >= FIRST_LOWERCASE) && (c <= LAST_LOWERCASE))   )
+       ((c >= FIRST_LOWERCASE) && (c <= LAST_LOWERCASE))   )
     {
         return true;
     }
@@ -1141,7 +1159,7 @@ int removeComments(FILE* inFile, FILE* cleanFile)
     }
     
     return 0;
-
+    
 } // END removeComments
 
 
@@ -1187,5 +1205,4 @@ int setOptions(int argc, char* argv[], struct Options* optns){
     return false;
     
 } // END setOptions
-
 
