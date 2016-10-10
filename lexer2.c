@@ -123,13 +123,13 @@ int main(int argc, char* argv[])
     
     /* reserved words and token values... can be given in any order (as long */
     /* as words/token values are specified in the same relative ordering     */
-    char* words[]        = {"const","var","procedure","call","begin","end","else","if","then","while","do","read","write","odd"};
+    char*  words[]       = {"const","var","procedure","call","begin","end","else","if","then","while","do","read","write","odd"};
     size_t words_token[] = {     28,   29,         30,    27,     21,   22,    33,  23,    24,    25,   26,    32,     31,    8};
     size_t words_len = sizeof(words) / sizeof(char *);
     
     /* symbols/operatorsand token values... can be given in any order (as long */
     /* as symbols/token values are specified in the same relative ordering     */
-    char* syms[]        = {"+","-","*","/","=","<>","<=","<",">=",">",":=",",",";",".","(",")"};
+    char*  syms[]       = {"+","-","*","/","=","<>","<=","<",">=",">",":=",",",";",".","(",")"};
     size_t syms_token[] = {  4,  5,  6,  7,  9,  10,  12, 11,  14, 13,  20, 17, 18, 19, 15, 16};
     size_t syms_len = sizeof(syms) / sizeof(char *);
     
@@ -370,20 +370,19 @@ DFA_type* DFAmaker(char** words,   size_t words_len,   size_t* words_token,
     for( i=0; i<DFAmatrixRows; i++ )
         DFA->nextStateMatrix[i] = calloc(MAX_ASCII_INPUT+1,sizeof(size_t));
     
-    /* no need to init matrix dead-state row (row 0) - already done by calloc */
+    /* no need to init row 0 (dead state) - already done by calloc */
     ++currentRow;
     
-    /*  init current row/state (start state) of DFA next-state matrix */
+    /*  init row 1 (start state) of DFA next-state matrix */
     DFAmatrixRowInit(DFA->nextStateMatrix, currentRow,
                      NUMBER_STATE, IDENT_STATE, IDENT_STATE);
     
-    /* START_STATE is a ficticious token type used as an internal */
-    /* indicator that an invalid token was read in                */
-    DFA->stateToTokenTypeList[currentRow] = START_STATE;
+    /* ending in start state idicates invalid token read */
+    DFA->stateToTokenTypeList[currentRow] = NULL_TOKEN;
     
     ++currentRow;
     
-    /*  init current row of DFA next-state matrix */
+    /*  init row 2 (identifier state) of DFA next-state matrix */
     DFAmatrixRowInit(DFA->nextStateMatrix, currentRow,
                      IDENT_STATE, IDENT_STATE, IDENT_STATE);
     
@@ -391,10 +390,9 @@ DFA_type* DFAmaker(char** words,   size_t words_len,   size_t* words_token,
     
     ++currentRow;
     
-    /* set next-states for number row (2) to number on all digits... */
-    /* all others are init by calloc (to DEAD_STATE)                 */
-    for( i=FIRST_NUMBER; i<=LAST_NUMBER; i++ )
-        DFA->nextStateMatrix[currentRow][i] = NUMBER_STATE;
+    /* init row 3 (number state)  DFA next-state matrix */
+    DFAmatrixRowInit(DFA->nextStateMatrix, currentRow,
+                     NUMBER_STATE, DEAD_STATE, DEAD_STATE);
     
     DFA->stateToTokenTypeList[currentRow] = NUMBER_STATE;
     
@@ -561,7 +559,7 @@ DFA_type* DFAmaker(char** words,   size_t words_len,   size_t* words_token,
                     /* move back through pairs of adjacent symbols until we find */
                     /* a pair that differ in the same or an earlier place than   */
                     /* than this pair differs (j)                                */
-                    size_t m=j+1;
+                    size_t m = j+1;
                     while( (m>j) && (k>0) )
                     {
                         m = findFirstDifference(symbols[k], symbols[k-1]);
@@ -967,7 +965,15 @@ aToken_type* getNextToken(FILE* cleanFile, DFA_type* DFA)
     /*  convert state/row in matrix to token type */
     t->type= DFA->stateToTokenTypeList[DFAstate];
     
-    switch(DFA->stateToTokenTypeList[DFAstate])
+    
+    /* invalid sybols/operators that are initial substrings of valid ones */
+    if ( (t->type == DEAD_STATE) && (length > 0)
+         && !isLetter(lexeme[0]) && !isNumber(lexeme[0]))
+    {
+        t->type = START_STATE;
+    }
+    
+    switch(t->type)
     {
         case(DEAD_STATE):
             
@@ -1146,7 +1152,7 @@ int removeComments(FILE* inFile, FILE* cleanFile)
             {
                 readNextChar(inFile, readbuff);
             }
-            while( strcmp(readbuff, "*/") != 0 );
+            while( (strcmp(readbuff, "*/") != 0) && (!feof(inFile)) );
             
             /* move past comment close chars */
             readNextChar(inFile, readbuff);
