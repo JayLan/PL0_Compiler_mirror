@@ -1127,6 +1127,8 @@ void readNextChar(FILE* f, char* buff)
 /*                  whitespace. Returns 0 on success, 1 on failure */
 int removeComments(FILE* inFile, FILE* cleanFile)
 {
+    const int cr=13, lf=10, space=32;
+    
     /* check validity of file pointers */
     if( inFile == NULL )
     {
@@ -1153,10 +1155,25 @@ int removeComments(FILE* inFile, FILE* cleanFile)
         /* check for start of comment */
         if( strcmp(readbuff, "/*") == 0)
         {
+            /* replace begin-comment marker with spaces */
+            putc(space, cleanFile);
+            putc(space, cleanFile);
+            
             /* loop until end of comment */
             do
             {
                 readNextChar(inFile, readbuff);
+                
+                /* replace cr/lf by lf, all other comment chars by spaces */
+                if ( (readbuff[1] == cr) || (readbuff[1] == lf) )
+                {
+                    fputc(lf, cleanFile);
+                }
+                else
+                {
+                    fputc(space, cleanFile);
+                }
+                
             }
             while( (strcmp(readbuff, "*/") != 0) && (!feof(inFile)) );
             
