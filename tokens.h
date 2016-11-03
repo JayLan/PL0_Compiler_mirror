@@ -25,3 +25,14 @@ typedef enum token {
   whilesym, dosym, callsym, constsym, varsym, procsym, writesym,
   readsym , elsesym
 } token_type;
+
+//token data type
+typedef struct
+{
+    union token_value val;
+    token_type  t;
+
+} aToken_type;
+
+//array to store tokens output by lexer
+static aToken_type[255];
