@@ -26,6 +26,13 @@ typedef enum token {
   readsym , elsesym
 } token_type;
 
+//token value may be
+union token_value
+{
+    int   number;
+    char* identifier;
+};
+
 //token data type
 typedef struct
 {
