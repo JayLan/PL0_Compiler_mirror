@@ -17,6 +17,12 @@
 //|
 //|===========================================================================
 
+#ifndef TOKENS_H
+#define TOKENS_H
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
 typedef enum token {
   nulsym = 1, identsym, numbersym, plussym, minussym,
   multsym, slashsym, oddsym, eqsym, neqsym, lessym, leqsym,
@@ -41,5 +47,8 @@ typedef struct
 
 } aToken_type;
 
+
 //array to store tokens output by lexer
-static aToken_type[255];
+static aToken_type tok [255];
+
+#endif // TOKENS_H

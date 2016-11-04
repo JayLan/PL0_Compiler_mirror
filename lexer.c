@@ -21,13 +21,14 @@
 #include "stdlib.h"
 #include "stdbool.h"
 #include "string.h"
+#include "tokens.h"
 
 #define MAX_IDENTIFIER_LENGTH     12
 #define DFA_MATRIX_NUMBER_COLUMNS 75
 #define DFA_MATRIX_NUMBER_STATES  76
 #define DEAD_STATE                75
 
-typedef enum token {
+/*typedef enum token {
     nulsym = 1, identsym, numbersym, plussym, minussym,
     multsym, slashsym, oddsym, eqsym, neqsym, lessym, leqsym,
     gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym,
@@ -52,7 +53,7 @@ typedef struct
     token_type  t;
 
 } aToken_type;
-
+*/
 struct Options {
     bool show_source;
     bool show_clean;
@@ -60,7 +61,7 @@ struct Options {
 };
 
 // function prototypes
-aToken_type* getNextToken(FILE* cleanFile);
+/*aToken_type* getNextToken(FILE* cleanFile);
 int  getDFAcolumnNumber (char c);
 int  nextState(int currentState, int input);
 int  stateToTokenTypeOrdinal(int s);
@@ -85,9 +86,9 @@ int main(int argc, char* argv[])
 
     rawFile = fopen(optns->filename, "rb+");
     cleanFile = fopen("clean.pl0", "wb+");
-
+*/
     /* display original code, if desired */
-    if(optns->show_source == true)
+    /*if(optns->show_source == true)
     {
         printf("\n");
         printf("source code:\n");
@@ -104,9 +105,9 @@ int main(int argc, char* argv[])
 
     //Re-initialize the clean file pointer:
     cleanFile = fopen("clean.pl0", "rb+");
-
+*/
     /* display comment-free code, if desired */
-    if(optns->show_clean == true)
+    /*if(optns->show_clean == true)
     {
         printf("\n");
         printf("source code without comments:\n");
@@ -137,7 +138,7 @@ int main(int argc, char* argv[])
 
 
 } // End main
-
+*/
 //Takes in an integer identifying what kind of error is found.
 //Displays the appropriate error to the user
 void displayError(int code, int var)
@@ -242,7 +243,7 @@ void displaySourceFile(FILE* ifp){
     //If NULL then display the error and return from function.
     if (ifp == NULL)
     {
-        displayError(12, 0);
+        //displayError(12, 0);
         return;
     }
 
@@ -305,7 +306,7 @@ void  displayToken(aToken_type* t)
         "read",     // 32
         "else" };   // 33
 
-    if(t->t == 2)
+    /*if(t->t == 2)
     {
         printf("%-13s", t->val.identifier);
     }
@@ -319,6 +320,21 @@ void  displayToken(aToken_type* t)
     }
 
     printf("%d\n", t->t);
+
+    return;
+*/
+
+printf("%d ", t->t);
+
+    if(t->t == 2)
+    {
+        printf("%s ", t->val.identifier);
+    }
+    else if(t->t == 3)
+    {
+        printf("%d ", t->val.number);
+    }
+
 
     return;
 
@@ -763,7 +779,7 @@ int removeComments(FILE* inFile, FILE* cleanFile){
 
 // setOptions: reads arguments from cmd line and sorts them into
 //             Options struct.  Returns 0 on success, 1 on failure.
-int setOptions(int argc, char* argv[], struct Options* optns){
+/*int setOptions(int argc, char* argv[], struct Options* optns){
 
     //return 1 if too many args
     if(argc > 4){
@@ -802,7 +818,7 @@ int setOptions(int argc, char* argv[], struct Options* optns){
 
 } // END set options
 
-
+*/
 // will return 0 on invalid character
 int stateToTokenTypeOrdinal(int s)
 {
