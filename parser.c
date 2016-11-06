@@ -136,6 +136,9 @@ void const_declaration(){
 		}
 		advance();
 
+        //NOTE: There is a c library <ctype.h> used to determine the type of
+        //      character. It has a function called isdigit() that might
+        //      be able to solve this error.
 		if(tok->t != NUMBER){
 			error(2);
 		}
@@ -215,7 +218,9 @@ void statement(){
 	switch(tok->t){
 		case identsym:
 			advance();
-			if(tok->t != becomesym){
+
+			//NOTE: Just changed "becomesym" to "becomessym"
+			if(tok->t != becomessym){
 				error(); // !!! input the error code !!!
 			}
 			advance();
@@ -354,7 +359,8 @@ void factor(){
 			advance();
 			break;
 
-		case "(":
+        //NOTE: Just changed "(" into lparentsym.
+		case lparentsym:
 			advance();
 			expression();
 			if(tok->t != ")" ){
