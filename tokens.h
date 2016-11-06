@@ -11,8 +11,8 @@
 //|---------------------------------------------------------------------------
 //|  Language:	C
 //|  File:		tokens.h
-//|  Purpose:	Provides enum for token types.
-//|
+//|  Purpose:	Provides enum for token types and an array to store output
+//|             tokens from the lexer, to be read by the parser
 //|  Notes:
 //|
 //|===========================================================================
@@ -22,6 +22,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+
+#define TOKEN_ARRAY_SIZE 500
 
 typedef enum token {
   nulsym = 1, identsym, numbersym, plussym, minussym,
@@ -40,15 +42,51 @@ union token_value
 };
 
 //token data type
-typedef struct
+typedef struct aToken_type
 {
     union token_value val;
     token_type  t;
 
 } aToken_type;
 
-
 //array to store tokens output by lexer
-static aToken_type tok [255];
+aToken_type* tokArr;
+static int lexCtr;
+static int parseCtr;
+
+bool addToken(aToken_type* t){
+    //initialize tokCtr if necessary
+    #ifndef tokArr
+        tokArr = malloc(sizeof(aToken_type)*TOKEN_ARRAY_SIZE);
+        lexCtr = 0;
+    #endif // lexCtr
+
+    //add the token to the array
+    memcpy(t, &tokArr[lexCtr], sizeof(aToken_type));
+    lexCtr++;
+
+    return true;
+}
+
+aToken_type* nextToken(){
+    //initialize tokCtr if necessary
+    #ifndef parseCtr
+        parseCtr = 0;
+    #endif // parseCtr
+
+    //return token and increment
+    return &tokArr[parseCtr++];
+}
+
+aToken_type* rewindParseTokens(){
+    parseCtr = 0;
+    return &tokArr[parseCtr];
+}
+
+aToken_type* rewindLexTokens(){
+    lexCtr = 0;
+    return &tokArr[lexCtr];
+}
+
 
 #endif // TOKENS_H

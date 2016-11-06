@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "tokens.h"
+#include "error.h"
 #include "lexer.h"
 
 void program();
@@ -34,12 +35,15 @@ void expression();
 void term();
 void factor();
 token_type relation(token_type); // return type?
+void advance();
 
+/*THIS IS THE GLOBAL TOKEN STORAGE AVAILABLE TO ALL PARSER FUNCTIONS*/
+aToken_type* tok;
 
 int main() {
 
     //Declare and Initialize Variables:
-    aToken_type *toke;
+    //aToken_type *toke;
 
     //Open and Declare File Pointers:
     FILE *source;
@@ -69,16 +73,20 @@ int main() {
     while(true)
     {
         //Get the tokens from the clean file.
-        toke = getNextToken(clean);
+        //toke = getNextToken(clean); --changed to use the global tok and functions from tokens.h
+        tok = nextToken();
 
         // halt if nullsym is returned
-        if ( toke->t == 1 )
+        if ( tok->t == 1 )
             break;
 
         //Display the appropriate token, then free it
-        displayToken(toke);
-        freeToken(toke);
+        displayToken(tok);
+        freeToken(tok);
     }
+
+    //Back to the beginning
+    rewindParseTokens();
 
     //Close the cleanFile pointer
     fclose(clean);
@@ -87,6 +95,10 @@ int main() {
 
 // *** PARSER ***
 
+//advance stores next token in tok
+void advance(){
+    tok = nextToken();
+}
 
 // comments
 void program(){
@@ -95,7 +107,7 @@ void program(){
 		error(9);
 	}
 	advance();
-	
+
 }
 
 // comments
@@ -112,30 +124,30 @@ void const_declaration(){
 		return;
 	}
 	advance();
-	
+
 	while(tok->t != commasym){
 		if(tok->t != identsym){
 			error(4);
 		}
 		advance();
-		
+
 		if(tok->t != eqsym){
 			error(3);
 		}
 		advance();
-		
+
 		if(tok->t != NUMBER){
 			error(2);
 		}
 		advance();
 	}
-	
+
 	if(tok->t != semicolonsym){
 		error(5);
 	}
-	
+
 	advance();
-	
+
 }
 
 // comments
@@ -144,18 +156,18 @@ void var_declaration(){
 		return;
 	}
 	advance();
-	
+
 	while(tok->t != commasym){
 		if(tok->t != identsym){
 			error(4);
 		}
 		advance();
 	}
-	
+
 	if(tok->t != semicolonsym){
 		error(5);
 	}
-	
+
 	advance();
 }
 
@@ -167,18 +179,18 @@ void proc_declaration(){
 	}
 	while(tok->t == procsym){
 		advance();
-		
+
 		if(tok->t != identsym){
 			error(4);
 		}
 		advance();
-		
+
 		if(tok->t != semicolonsym){
 			error(5);
 		}
 		advance();
 		block();
-		
+
 		if(tok->t != semicolonsym){
 			error(5);
 		}
@@ -190,14 +202,14 @@ void proc_declaration(){
 // comments
 void statement(){
 
-/* 
+/*
 
 !!! do we need this? I think we are testing it in the switch !!!
 
 	if(tok->t != identsym){
 		error(); // !!! input the error code !!!
 	}
-	
+
 */
 
 	switch(tok->t){
@@ -209,7 +221,7 @@ void statement(){
 			advance();
 			expression();
 			break;
-		
+
 		case callsym:
 			advance();
 			if(tok->t != identsym){
@@ -217,11 +229,11 @@ void statement(){
 			}
 			advance();
 			break;
-			
+
 		case beginsym:
 			advance();
 			statement();
-		
+
 			while(tok->t == semicolonsym){
 				advance();
 				statement();
@@ -231,17 +243,17 @@ void statement(){
 			}
 			advance();
 			break;
-		
+
 		case ifsym:
 			advance();
 			condition();
-		
+
 			if(tok->t != thensym){
 				error(16);
 			}
 			advance();
 			break;
-		
+
 		case whilesym:
 			advance();
 			condition();
@@ -251,7 +263,7 @@ void statement(){
 			advance();
 			statement();
 			break;
-	
+
 		default:
 			error(7); // !!! check this !!!
 			break;
@@ -269,7 +281,7 @@ void condition(){
 		expression();
 		if(tok != relation(tok->t)){
 			error(20);
-		
+
 		}
 		advance();
 		expression();
@@ -277,7 +289,7 @@ void condition(){
 }
 
 token_type relation(token_type tok){
-	
+
 	switch(tok){
 		case eqsym:
 			return eqsym;
@@ -301,7 +313,7 @@ token_type relation(token_type tok){
 			error(20);
 			break;
 	}
-	
+
 }
 
 // comments
@@ -309,20 +321,20 @@ void expression(){
 	if(tok->t != plussym || tok->t != minussym){
 		return;
 	}
-	
+
 	term();
-	
+
 	while(tok->t == plussym || tok->t == minussym){
 		advance();
 		term();
 	}
-	
+
 }
 
 // comments
 void term(){
 	factor(); // check on this
-	
+
 	while(tok->t == multsym || tok->t == slashsym){
 		advance();
 		factor();
@@ -332,16 +344,16 @@ void term(){
 // comments
 void factor(){
 	switch(tok->t){
-	
+
 		case identsym:
 			advance();
 			break;
-		
+
 		// !!! need to fix this: !!!
 		case NUMBER:
 			advance();
 			break;
-		
+
 		case "(":
 			advance();
 			expression();
@@ -350,13 +362,13 @@ void factor(){
 			}
 			advance();
 			break;
-		
+
 		default:
 			error(23); // !!! check this !!!
 			break;
-	
+
 	} // END switch
-	
+
 
 }
 
