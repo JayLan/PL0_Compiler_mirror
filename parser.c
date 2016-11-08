@@ -103,6 +103,7 @@ void advance(){
 // comments
 void program(){
 	block();
+	
 	if(tok->t != periodsym){
 		error(9);
 	}
@@ -120,12 +121,14 @@ void block(){
 
 // comments
 void const_declaration(){
+
 	if(tok->t != constsym){
 		return;
 	}
 	advance();
 
 	while(tok->t != commasym){
+	
 		if(tok->t != identsym){
 			error(4);
 		}
@@ -136,10 +139,10 @@ void const_declaration(){
 		}
 		advance();
 
-        //NOTE: There is a c library <ctype.h> used to determine the type of
-        //      character. It has a function called isdigit() that might
-        //      be able to solve this error.
-		if(tok->t != NUMBER){
+		// are we testing fornumbersym
+		// or if its a digit [isn't this tested in lexer
+		// and it assigns numbersym?]
+		if(tok->t != numbersym){
 			error(2);
 		}
 		advance();
@@ -155,12 +158,14 @@ void const_declaration(){
 
 // comments
 void var_declaration(){
+
 	if(tok->t != varsym){
 		return;
 	}
 	advance();
 
 	while(tok->t != commasym){
+	
 		if(tok->t != identsym){
 			error(4);
 		}
@@ -205,23 +210,12 @@ void proc_declaration(){
 // comments
 void statement(){
 
-/*
-
-!!! do we need this? I think we are testing it in the switch !!!
-
-	if(tok->t != identsym){
-		error(); // !!! input the error code !!!
-	}
-
-*/
-
 	switch(tok->t){
 		case identsym:
 			advance();
 
-			//NOTE: Just changed "becomesym" to "becomessym"
 			if(tok->t != becomessym){
-				error(); // !!! input the error code !!!
+				error(0); // !!! input the error code !!!
 			}
 			advance();
 			expression();
@@ -229,6 +223,7 @@ void statement(){
 
 		case callsym:
 			advance();
+			
 			if(tok->t != identsym){
 				error(14);
 			}
@@ -243,8 +238,9 @@ void statement(){
 				advance();
 				statement();
 			}
+			
 			if(tok->t != endsym){
-				error(); // !!! input the error code !!!
+				error(0); // !!! input the error code !!!
 			}
 			advance();
 			break;
@@ -262,6 +258,7 @@ void statement(){
 		case whilesym:
 			advance();
 			condition();
+			
 			if(tok->t != dosym){
 				error(18);
 			}
@@ -279,11 +276,13 @@ void statement(){
 
 // comments
 void condition(){
+
 	if(tok->t == oddsym){
 		advance();
 		expression();
 	}else{
 		expression();
+		
 		if(tok != relation(tok->t)){
 			error(20);
 
@@ -323,6 +322,7 @@ token_type relation(token_type tok){
 
 // comments
 void expression(){
+
 	if(tok->t != plussym || tok->t != minussym){
 		return;
 	}
@@ -338,7 +338,7 @@ void expression(){
 
 // comments
 void term(){
-	factor(); // check on this
+	factor();
 
 	while(tok->t == multsym || tok->t == slashsym){
 		advance();
@@ -354,16 +354,15 @@ void factor(){
 			advance();
 			break;
 
-		// !!! need to fix this: !!!
-		case NUMBER:
+		case numbersym:
 			advance();
 			break;
 
-        //NOTE: Just changed "(" into lparentsym.
 		case lparentsym:
 			advance();
 			expression();
-			if(tok->t != ")" ){
+			
+			if(tok->t != rparentsym ){
 				error(22);
 			}
 			advance();
