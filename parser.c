@@ -82,11 +82,12 @@ int main() {
 
         //Display the appropriate token, then free it
         displayToken(tok);
+        addToken(tok);
         freeToken(tok);
     }
 
     //Back to the beginning
-    rewindParseTokens();
+    tok = rewindParseTokens();
 
     //Close the cleanFile pointer
     fclose(clean);
@@ -103,11 +104,13 @@ void advance(){
 // comments
 void program(){
 	block();
-	
+
 	if(tok->t != periodsym){
 		error(9);
 	}
 	advance();
+
+	printf("No errors, the program is syntactically correct.\n");
 
 }
 
@@ -128,7 +131,7 @@ void const_declaration(){
 	advance();
 
 	while(tok->t != commasym){
-	
+
 		if(tok->t != identsym){
 			error(4);
 		}
@@ -165,7 +168,7 @@ void var_declaration(){
 	advance();
 
 	while(tok->t != commasym){
-	
+
 		if(tok->t != identsym){
 			error(4);
 		}
@@ -223,7 +226,7 @@ void statement(){
 
 		case callsym:
 			advance();
-			
+
 			if(tok->t != identsym){
 				error(14);
 			}
@@ -238,7 +241,7 @@ void statement(){
 				advance();
 				statement();
 			}
-			
+
 			if(tok->t != endsym){
 				error(0); // !!! input the error code !!!
 			}
@@ -258,7 +261,7 @@ void statement(){
 		case whilesym:
 			advance();
 			condition();
-			
+
 			if(tok->t != dosym){
 				error(18);
 			}
@@ -282,7 +285,7 @@ void condition(){
 		expression();
 	}else{
 		expression();
-		
+
 		if(tok != relation(tok->t)){
 			error(20);
 
@@ -361,7 +364,7 @@ void factor(){
 		case lparentsym:
 			advance();
 			expression();
-			
+
 			if(tok->t != rparentsym ){
 				error(22);
 			}
