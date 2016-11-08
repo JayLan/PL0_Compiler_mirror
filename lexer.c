@@ -614,7 +614,7 @@ aToken_type* getNextToken(FILE* cleanFile)
     }
 
     //this is where we will send the token to tokArr in tokens.h
-    addToken(t);
+    //addToken(t);
     return t;
 
 } // END get next token
