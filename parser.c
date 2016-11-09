@@ -42,8 +42,6 @@ aToken_type* tok;
 
 int main() {
 
-    printf("hallo!\n");
-
     //Declare and Initialize Variables:
     //aToken_type *toke;
 
