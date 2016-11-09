@@ -42,6 +42,8 @@ aToken_type* tok;
 
 int main() {
 
+    printf("hallo!\n");
+
     //Declare and Initialize Variables:
     //aToken_type *toke;
 
@@ -64,6 +66,7 @@ int main() {
     //Remove Comments from Source File:
     removeComments(source, clean);
 
+
     fclose(source);
     fclose(clean);
 
@@ -75,6 +78,10 @@ int main() {
         //Get the tokens from the clean file.
         //toke = getNextToken(clean); --changed to use the global tok and functions from tokens.h
         tok = nextToken();
+        if (tok == NULL){
+            printf("invalid token\n");
+            break;
+        }
 
         // halt if nullsym is returned
         if ( tok->t == 1 )
@@ -107,6 +114,7 @@ void program(){
 
 	if(tok->t != periodsym){
 		error(9);
+		exit(1);
 	}
 	advance();
 
@@ -134,11 +142,13 @@ void const_declaration(){
 
 		if(tok->t != identsym){
 			error(4);
+			exit(1);
 		}
 		advance();
 
 		if(tok->t != eqsym){
 			error(3);
+			exit(1);
 		}
 		advance();
 
@@ -147,12 +157,14 @@ void const_declaration(){
 		// and it assigns numbersym?]
 		if(tok->t != numbersym){
 			error(2);
+			exit(1);
 		}
 		advance();
 	}
 
 	if(tok->t != semicolonsym){
 		error(5);
+		exit(1);
 	}
 
 	advance();
@@ -171,12 +183,14 @@ void var_declaration(){
 
 		if(tok->t != identsym){
 			error(4);
+			exit(1);
 		}
 		advance();
 	}
 
 	if(tok->t != semicolonsym){
 		error(5);
+		exit(1);
 	}
 
 	advance();
@@ -193,17 +207,20 @@ void proc_declaration(){
 
 		if(tok->t != identsym){
 			error(4);
+			exit(1);
 		}
 		advance();
 
 		if(tok->t != semicolonsym){
 			error(5);
+			exit(1);
 		}
 		advance();
 		block();
 
 		if(tok->t != semicolonsym){
 			error(5);
+			exit(1);
 		}
 		advance();
 	}
@@ -219,6 +236,7 @@ void statement(){
 
 			if(tok->t != becomessym){
 				error(0); // !!! input the error code !!!
+				exit(1);
 			}
 			advance();
 			expression();
@@ -229,6 +247,7 @@ void statement(){
 
 			if(tok->t != identsym){
 				error(14);
+				exit(1);
 			}
 			advance();
 			break;
@@ -244,6 +263,7 @@ void statement(){
 
 			if(tok->t != endsym){
 				error(0); // !!! input the error code !!!
+				exit(1);
 			}
 			advance();
 			break;
@@ -254,6 +274,7 @@ void statement(){
 
 			if(tok->t != thensym){
 				error(16);
+				exit(1);
 			}
 			advance();
 			break;
@@ -264,13 +285,14 @@ void statement(){
 
 			if(tok->t != dosym){
 				error(18);
+				exit(1);
 			}
 			advance();
 			statement();
 			break;
 
 		default:
-			error(7); // !!! check this !!!
+			//error(7); // no error, epsilon is a valid string for statement
 			break;
 
 		} // END switch
@@ -288,6 +310,7 @@ void condition(){
 
 		if(tok != relation(tok->t)){
 			error(20);
+			exit(1);
 
 		}
 		advance();
@@ -318,6 +341,7 @@ token_type relation(token_type tok){
 			break;
 		default:
 			error(20);
+			exit(1);
 			break;
 	}
 
@@ -367,12 +391,14 @@ void factor(){
 
 			if(tok->t != rparentsym ){
 				error(22);
+				exit(1);
 			}
 			advance();
 			break;
 
 		default:
 			error(23); // !!! check this !!!
+			exit(1);
 			break;
 
 	} // END switch
