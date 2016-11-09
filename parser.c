@@ -89,9 +89,9 @@ int main() {
             break;
 
         //Display the appropriate token, then free it
-        printf("token: ");
+        //printf("token: ");
         displayToken(tok);
-        printf("\n");
+        //printf("\n");
         //addToken(tok); --this must be done in the lexer as it reads the clean file
         freeToken(tok);
     }
