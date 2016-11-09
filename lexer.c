@@ -61,7 +61,8 @@ struct Options {
 };
 
 // function prototypes
-/*aToken_type* getNextToken(FILE* cleanFile);
+int do_lex(FILE* clean);
+aToken_type* getNextToken(FILE* cleanFile);
 int  getDFAcolumnNumber (char c);
 int  nextState(int currentState, int input);
 int  stateToTokenTypeOrdinal(int s);
@@ -74,6 +75,7 @@ void freeToken(aToken_type* t);
 void readnextc(FILE* f, char* buff);
 
 
+/*
 int main(int argc, char* argv[])
 {
     //Allocates memory for the flags and sends them to setOptions:
@@ -96,16 +98,17 @@ int main(int argc, char* argv[])
         displaySourceFile(rawFile);
     }
 
-    //Remove Comments from the original source file,
-    //then close both file pointers:
     removeComments(rawFile, cleanFile);
 
     fclose(rawFile);
     fclose(cleanFile);
+*/
+    //Remove Comments from the original source file,
+    //then close both file pointers:
 
     //Re-initialize the clean file pointer:
-    cleanFile = fopen("clean.pl0", "rb+");
-*/
+    //cleanFile = fopen("clean.pl0", "rb+");
+
     /* display comment-free code, if desired */
     /*if(optns->show_clean == true)
     {
@@ -114,6 +117,8 @@ int main(int argc, char* argv[])
         printf("-----------------------------\n");
         displaySourceFile(cleanFile);
     }
+*/
+int do_lex(FILE* cleanFile){
 
     printf("\n");
     printf("tokens:\n");
@@ -123,13 +128,16 @@ int main(int argc, char* argv[])
     {
         //Get the tokens from the clean file.
         aToken_type* toke = getNextToken(cleanFile);
+        //printf("do_lex: toke->t = %d\n", toke->t);
 
         // halt if nullsym is returned
-        if ( toke->t == 1 )
+        if ( toke->t == 1 ){
+            //printf("do_lex: breaking after nullsym found\n", toke->t);
             break;
+        }
 
         //Display the appropriate token, then free it
-        displayToken(toke);
+        //displayToken(toke); --token will be displayed in by the parser or driver
         freeToken(toke);
     }
 
@@ -138,7 +146,7 @@ int main(int argc, char* argv[])
 
 
 } // End main
-*/
+
 //Takes in an integer identifying what kind of error is found.
 //Displays the appropriate error to the user
 void displayError(int code, int var)
@@ -469,6 +477,7 @@ aToken_type* getNextToken(FILE* cleanFile)
     if (feof(cleanFile))
     {
         t->t = 1;
+        t->t = 1;
         return t;
     }
 
@@ -615,6 +624,7 @@ aToken_type* getNextToken(FILE* cleanFile)
 
     //this is where we will send the token to tokArr in tokens.h
     addToken(t);
+    //printf("added a token %d\n", t->t);
     return t;
 
 } // END get next token

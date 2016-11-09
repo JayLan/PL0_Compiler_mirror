@@ -22,30 +22,36 @@
 #include "stdbool.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 aToken_type* tokArr;
-static int lexCtr;
-static int parseCtr;
+int lexCtr;
+int parseCtr;
 
 bool addToken(aToken_type* t){
     //initialize tokCtr if necessary
-    #ifndef tokArr
+    if (tokArr == NULL){
         tokArr = malloc(sizeof(aToken_type)*TOKEN_ARRAY_SIZE);
         lexCtr = 0;
-    #endif // lexCtr
+    }
+
+    //printf("lexCtr = %d\n", lexCtr);
 
     //add the token to the array
-    memcpy(t, &tokArr[lexCtr], sizeof(aToken_type));
+    memcpy(&tokArr[lexCtr], t, sizeof(aToken_type));
+    //printf("copied t to array\n", lexCtr);
+
     lexCtr++;
+    //printf("lexCtr after increment = %d\n", lexCtr);
 
     return true;
 }
 
 aToken_type* nextToken(){
     //initialize tokCtr if necessary
-    #ifndef parseCtr
+    if (parseCtr == NULL){
         parseCtr = 0;
-    #endif // parseCtr
+    }
 
     //return token and increment
     return &tokArr[parseCtr++];
