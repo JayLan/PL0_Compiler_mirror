@@ -1,0 +1,40 @@
+NOTE: Please keep in mind this is me experimenting what has already been done!
+      If the parser itself seems heavily changed, then please don't worry. It's just me
+      trying things out to fix errors, and unable to change them back in this file.
+      I keep copies of all of the repository files, and only pushed this one so I 
+      don't mess up what we already have. I plan on converting everything in this file to
+      be as close as possible to the original, once I debug further.
+
+Changes Made: 
+- Added a global array of tokens instead of a global pointer.
+          - when I took a look at the original parser.c file I noticed that a pointer was 
+            declared without any reference to a structure that will actually hold the tokens
+          - pointers are only temporary, and cannot point to more than one thing at a time.
+          - turned tok into a non-pointer token_type for testing purposes
+
+- Added the token (the sym type only because I haven't figured out how to properly add the aToken_type
+  kind of tokens yet) in the main function.
+	- these tokens are added into the proper array index. 
+	- when taking a look at do_lex I noticed that it wasn't storing tokens either, but rather
+          holding them, displaying them, and releasing them (freeToken) as they came.
+
+- Put function prototype typing as token_type
+        - testing purposes only
+        - Because tok in this file is not global, it needs to be passed in and returned at 
+          each iteration. This is because changes made in functions don't exist outside of 
+          the function unless they are global, or unless they are passed back (actually might
+          be possible to make tok global now that I think about it). I was personally taught
+          that global pointers aren't really a good idea, but that's just me. 
+
+- Changed a few things in Parser (Testing purposes only!)
+        - I have checked, and the tokens are now passing into the parser correctly (the 
+          commented out printf statement in advance() will show them as they go. 
+        - Noticed errors in the error output of the parser once this was done, and am 
+          currently experimenting to see what the actual problem is
+        - I will not touch the parser in parser.c unless I figure it out, and plan to change
+          as little of it as possible.
+
+- Did not use tokens.c when testing, as it worked fine without it.
+
+If there are any questions please let me know!
+          
