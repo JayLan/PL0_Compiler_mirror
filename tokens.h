@@ -24,6 +24,7 @@
 #include <stdbool.h>
 
 #define TOKEN_ARRAY_SIZE 500
+#define IDENT_MAX_LENGTH 20
 
 typedef enum token {
   nulsym = 1, identsym, numbersym, plussym, minussym,

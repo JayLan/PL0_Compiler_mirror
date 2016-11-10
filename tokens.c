@@ -38,7 +38,16 @@ bool addToken(aToken_type* t){
     //printf("lexCtr = %d\n", lexCtr);
 
     //add the token to the array
-    memcpy(&tokArr[lexCtr], t, sizeof(aToken_type));
+    //memcpy(&tokArr[lexCtr], t, sizeof(aToken_type));
+    token_type n = t->t;
+    tokArr[lexCtr].t = n;
+    if (n ==2 ){
+        tokArr[lexCtr].val.identifier = malloc(sizeof(char) * IDENT_MAX_LENGTH);
+        strcpy( tokArr[lexCtr].val.identifier, t->val.identifier );
+    }
+    else if (n == 3){
+        tokArr[lexCtr].val.number = t->val.number;
+    }
     //printf("copied t to array\n", lexCtr);
 
     lexCtr++;
