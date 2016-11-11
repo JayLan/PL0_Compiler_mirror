@@ -128,6 +128,10 @@ int do_lex(FILE* cleanFile){
     {
         //Get the tokens from the clean file.
         aToken_type* toke = getNextToken(cleanFile);
+
+        //this is where we will send the token to tokArr in tokens.h
+        addToken(toke);
+
         //printf("do_lex: toke->t = %d\n", toke->t);
 
         // halt if nullsym is returned
@@ -622,8 +626,6 @@ aToken_type* getNextToken(FILE* cleanFile)
             break;
     }
 
-    //this is where we will send the token to tokArr in tokens.h
-    addToken(t);
     //printf("added a token %d\n", t->t);
     return t;
 
