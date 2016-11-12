@@ -53,7 +53,7 @@ int main() {
     FILE *source;
     FILE *clean;
 
-    source = fopen("tester2.txt", "r");
+    source = fopen("tester3.txt", "r");
     clean = fopen("clean.pl0", "w");
 
     //Check if pointers are valid:
@@ -232,13 +232,14 @@ token_type var_declaration(token_type tok){
         return tok;
     }
 
-    if (tok != semicolonsym){
+    else if (tok != semicolonsym){
         error(5);
         exit(1);
     }
 
+    else{
         tok = advance(tok);
-
+    }
 
 	return tok;
 }
@@ -360,6 +361,7 @@ token_type statement(token_type tok){
 
         tok = advance(tok);
         tok = expression(tok);
+        return tok;
     }
 
      if (tok == callsym){
@@ -384,9 +386,11 @@ token_type statement(token_type tok){
 
         tok = advance(tok);
 
-        if (tok != semicolonsym){
+        while (tok != semicolonsym){
             tok = statement(tok);
         }
+
+        tok = advance(tok);
 
         if (tok != endsym){
             error(17); // !!! input the error code !!!
@@ -394,6 +398,7 @@ token_type statement(token_type tok){
         }
 
         tok = advance(tok);
+
     }
 
      if (tok == ifsym){
@@ -422,6 +427,15 @@ token_type statement(token_type tok){
         tok = statement(tok);
     }
 
+    if (tok == readsym){
+        tok = advance(tok);
+        tok = statement(tok);
+    }
+
+    if (tok == writesym){
+        tok = advance(tok);
+        tok = statement(tok);
+    }
     else{
         return tok;
     }
