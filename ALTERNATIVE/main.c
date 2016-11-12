@@ -20,9 +20,9 @@
 //Included Libraries
 #include <stdio.h>
 #include <stdlib.h>
-#include "tokens.h"
-#include "error.h"
-#include "lexer.h"
+#include "tokensss.h"
+#include "errorsss.h"
+#include "lexersss.h"
 
 void program(token_type tok);
 token_type block(token_type tok);
@@ -34,7 +34,7 @@ token_type condition(token_type tok);
 token_type expression(token_type tok);
 token_type term(token_type tok);
 token_type factor(token_type tok);
-token_type relation(token_type tok); // return type?
+void relation(token_type tok); // return type?
 token_type advance(token_type tok);
 
 /*THIS IS THE GLOBAL TOKEN STORAGE AVAILABLE TO ALL PARSER FUNCTIONS*/
@@ -53,7 +53,7 @@ int main() {
     FILE *source;
     FILE *clean;
 
-    source = fopen("tester.txt", "r");
+    source = fopen("tester2.txt", "r");
     clean = fopen("clean.pl0", "w");
 
     //Check if pointers are valid:
@@ -134,20 +134,19 @@ token_type advance(token_type tok){
 
     //Commented out print to check which token is now in tok
     //Used to identify where possible errors take place in the parser
-    //printf("%d \n", tok);
+    printf("%d \n", tok);
     return tok;
 }
 
 // comments
 void program(token_type tok){
+
 	tok = block(tok);
 
 	if(tok != periodsym){
 		error(9);
 		exit(1);
 	}
-
-    tok = advance(tok);
 
 	printf("No errors, the program is syntactically correct.\n");
 
@@ -230,16 +229,16 @@ token_type var_declaration(token_type tok){
 
     if (tok == commasym){
         tok = var_declaration(tok);
+        return tok;
     }
 
-    else {
-        if (tok != semicolonsym){
-            error(5);
-            exit(1);
-        }
+    if (tok != semicolonsym){
+        error(5);
+        exit(1);
+    }
 
         tok = advance(tok);
-    }
+
 
 	return tok;
 }
@@ -279,7 +278,7 @@ token_type proc_declaration(token_type tok){
 // comments
 token_type statement(token_type tok){
 
-	switch(tok){
+	/*switch(tok){
 		case identsym:
 			tok = advance(tok);
 
@@ -289,6 +288,7 @@ token_type statement(token_type tok){
 			}
 			tok = advance(tok);
 			tok = expression(tok);
+			return tok;
 			break;
 
 		case callsym:
@@ -299,6 +299,7 @@ token_type statement(token_type tok){
 				exit(1);
 			}
 			tok = advance(tok);
+			return tok;
 			break;
 
 		case beginsym:
@@ -315,6 +316,7 @@ token_type statement(token_type tok){
 				exit(1);
 			}
 			tok = advance(tok);
+			return tok;
 			break;
 
 		case ifsym:
@@ -326,6 +328,7 @@ token_type statement(token_type tok){
 				exit(1);
 			}
 			tok = advance(tok);
+			return tok;
 			break;
 
 		case whilesym:
@@ -338,6 +341,7 @@ token_type statement(token_type tok){
 			}
 			tok = advance(tok);
 			tok = statement(tok);
+			return tok;
 			break;
 
 		default:
@@ -345,25 +349,97 @@ token_type statement(token_type tok){
 			break;
 
 		} // END switch
+*/
+    if (tok == identsym){
+        tok = advance (tok);
+
+        if (tok != becomessym){
+            error(0); // !!! input the error code !!!
+            exit(1);
+        }
+
+        tok = advance(tok);
+        tok = expression(tok);
+    }
+
+     if (tok == callsym){
+        tok = advance(tok);
+
+        if (tok != identsym){
+            error(14);
+            exit(1);
+        }
+
+        tok = advance(tok);
+    }
+
+     if (tok == beginsym){
+        tok = advance(tok);
+        tok = statement(tok);
+
+        if (tok != semicolonsym){
+            error(5);
+			exit(1);
+        }
+
+        tok = advance(tok);
+
+        if (tok != semicolonsym){
+            tok = statement(tok);
+        }
+
+        if (tok != endsym){
+            error(17); // !!! input the error code !!!
+            exit(1);
+        }
+
+        tok = advance(tok);
+    }
+
+     if (tok == ifsym){
+        tok = advance(tok);
+        tok = condition(tok);
+
+        if (tok != thensym){
+            error(16);
+            exit(1);
+        }
+
+        tok = advance(tok);
+        tok = statement(tok);
+    }
+
+     if (tok == whilesym){
+        tok = advance(tok);
+        tok = condition(tok);
+
+        if (tok != dosym){
+            error(18);
+            exit(1);
+        }
+
+        tok = advance(tok);
+        tok = statement(tok);
+    }
+
+    else{
+        return tok;
+    }
+
 
     return tok;
 }
 
 // comments
 token_type condition(token_type tok){
-    token_type rel;
 
 	if(tok == oddsym){
 		tok = advance(tok);
 		tok = expression(tok);
 	}else{
 		tok = expression(tok);
-        rel = relation(tok);
 
-		if(tok != rel){
-			error(20);
-			exit(1);
-		}
+		relation(tok);
 
 		tok = advance(tok);
 		tok = expression(tok);
@@ -372,33 +448,26 @@ token_type condition(token_type tok){
 	return tok;
 }
 
-token_type relation(token_type tok){
+void relation(token_type tok){
 
 	switch(tok){
 		case eqsym:
-			return eqsym;
 			break;
 		case neqsym:
-			return neqsym;
 			break;
 		case lessym:
-			return lessym;
 			break;
 		case leqsym:
-			return leqsym;
 			break;
 		case gtrsym:
-			return gtrsym;
 			break;
 		case geqsym:
-			return geqsym;
 			break;
 		default:
 			error(20);
 			exit(1);
 			break;
 	}
-
 }
 
 // comments
@@ -428,7 +497,6 @@ token_type term(token_type tok){
 	tok = factor(tok);
 
 	while(tok == multsym || tok == slashsym){
-        tok = term(tok);
 		tok = advance(tok);
 		tok = factor(tok);
 	}
@@ -438,33 +506,33 @@ token_type term(token_type tok){
 
 // comments
 token_type factor(token_type tok){
-	switch(tok){
 
-		case identsym:
-			tok = advance(tok);
-			break;
+		if (tok == identsym){
+            tok = advance(tok);
+		}
 
-		case numbersym:
-			tok = advance(tok);
-			break;
+		else if (tok == numbersym){
+            tok = advance(tok);
+		}
 
-		case lparentsym:
-			tok = advance(tok);
-			tok = expression(tok);
+		else if (tok == lparentsym){
+            tok = advance(tok);
+            tok = expression(tok);
 
-			if(tok != rparentsym ){
-				error(22);
+            if (tok != rparentsym){
+                error(22);
 				exit(1);
-			}
-			tok = advance(tok);
-			break;
+            }
 
-		default:
+            tok = advance(tok);
+
+		}
+
+		else{
 			error(23); // !!! check this !!!
 			exit(1);
-			break;
+		}
+
+		return tok;
 
 	} // END switch
-
-return tok;
-}

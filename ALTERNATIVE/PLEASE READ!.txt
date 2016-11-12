@@ -1,3 +1,4 @@
+11/09/2016
 NOTE: Please keep in mind this is me experimenting what has already been done!
       If the parser itself seems heavily changed, then please don't worry. It's just me
       trying things out to fix errors, and unable to change them back in this file.
@@ -38,3 +39,9 @@ Changes Made:
 
 If there are any questions please let me know!
           
+
+11/10/2016
+UPDATES: 
+Further modified parser for error checking. 
+Corrected a portion of statement that previously did not check for semicolons correctly. Please
+note that all other changes are still for experiment purposes only at this time. 
