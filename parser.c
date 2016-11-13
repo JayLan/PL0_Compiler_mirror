@@ -40,6 +40,8 @@ void advance();
 /*THIS IS THE GLOBAL TOKEN STORAGE AVAILABLE TO ALL PARSER FUNCTIONS*/
 aToken_type* tok;
 
+//moved main to compile.c
+/*
 int main() {
 
     //Declare and Initialize Variables:
@@ -103,6 +105,7 @@ int main() {
     //Close the cleanFile pointer
     fclose(clean);
 }
+*/
 
 
 // *** PARSER ***
