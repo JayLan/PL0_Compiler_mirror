@@ -24,21 +24,45 @@
 #include "error.h"
 #include "lexer.h"
 
-void program();
-void block();
-void const_declaration();
-void var_declaration();
-void proc_declaration();
-void statement();
-void condition();
-void expression();
-void term();
-void factor();
-token_type relation(token_type); // return type?
-void advance();
+// *** do we need to include this? ***   #include "vmsss.h"
+
+#define MAX_SYMBOL_TABLE_SIZE 100
+
+typedef struct symbol {
+ int kind; // const = 1, var = 2, proc = 3
+ char name[12]; // name up to 11 chars
+ int val; // number (ASCII value)
+ int level; // L level
+ int addr; // M address
+} symbol;
+
+void program(aToken_type tok);
+aToken_type block(aToken_type tok);
+aToken_type const_declaration(aToken_type tok);
+aToken_type var_declaration(aToken_type tok);
+aToken_type proc_declaration(aToken_type tok);
+aToken_type statement(aToken_type tok);
+aToken_type condition(aToken_type tok);
+aToken_type expression(aToken_type tok);
+aToken_type term(aToken_type tok);
+aToken_type factor(aToken_type tok);
+void relation(aToken_type tok); // return type?
+aToken_type advance(aToken_type tok);
+
+void put_symbol(int kind, char name [], int num, int level, int modifier);
+void emit (int op, int l, int m);
+void print_pm0();
 
 /*THIS IS THE GLOBAL TOKEN STORAGE AVAILABLE TO ALL PARSER FUNCTIONS*/
-aToken_type* tok;
+
+aToken_type* tok; // *** can this be deleted? ***   
+
+aToken_type tokArray [TOKEN_ARRAY_SIZE];
+symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
+instruction codeArray [MAX_CODE_LENGTH];
+static int lexCtr = 0;
+static int cx = 0;
+static int symctr = 0;
 
 //moved main to compile.c
 /*
