@@ -114,5 +114,7 @@ int main(int argc, char* argv[]) {
     //Close the cleanFile pointer
     fclose(clean);
 
-    print_pm0();
+    FILE* codeFile = fopen(argv[2], "w+");
+
+    print_pm0(codeFile);
 }

@@ -513,11 +513,12 @@ void emit(int op, int l, int m){
     }
 }
 
-void print_pm0(){
+void print_pm0(FILE* outFile){
     int i;
 
     for (i = 0; i < cx; i++){
         printf("%d %d %d\n", (codeArray[i]).op, (codeArray[i]).l, (codeArray[i]).m);
+        fprintf(outFile, "%d %d %d\n", (codeArray[i]).op, (codeArray[i]).l, (codeArray[i]).m);
     }
 
 }
