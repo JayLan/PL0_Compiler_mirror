@@ -358,6 +358,7 @@ aToken_type condition(aToken_type tok){
 
 	if(tok.t == oddsym){
 		tok = advance(tok);
+		emit(OPR, 0, 6);
 		tok = expression(tok);
 	}else{
 		tok = expression(tok);
