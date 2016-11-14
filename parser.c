@@ -373,16 +373,22 @@ void relation(aToken_type tok){
 
 	switch(tok.t){
 		case eqsym:
+		    emit(OPR, 0, 8);
 			break;
 		case neqsym:
+		    emit(OPR, 0, 9);
 			break;
 		case lessym:
+		    emit(OPR, 0, 10);
 			break;
 		case leqsym:
+		    emit(OPR, 0, 11);
 			break;
 		case gtrsym:
+		    emit(OPR, 0, 12);
 			break;
 		case geqsym:
+		    emit(OPR, 0, 13);
 			break;
 		default:
 			error(20);
@@ -477,8 +483,7 @@ aToken_type factor(aToken_type tok){
 		}
 
 		else{
-			error(23); // !!! check this !!!
-			exit(1);
+			return tok;
 		}
 
 		return tok;
