@@ -23,29 +23,48 @@
 #include "tokensss.h"
 #include "errorsss.h"
 #include "lexersss.h"
+#include "vmsss.h"
 
-void program(token_type tok);
-token_type block(token_type tok);
-token_type const_declaration(token_type tok);
-token_type var_declaration(token_type tok);
-token_type proc_declaration(token_type tok);
-token_type statement(token_type tok);
-token_type condition(token_type tok);
-token_type expression(token_type tok);
-token_type term(token_type tok);
-token_type factor(token_type tok);
-void relation(token_type tok); // return type?
-token_type advance(token_type tok);
+#define MAX_SYMBOL_TABLE_SIZE 100
+
+typedef struct symbol {
+ int kind; // const = 1, var = 2, proc = 3
+ char name[12]; // name up to 11 chars
+ int val; // number (ASCII value)
+ int level; // L level
+ int addr; // M address
+} symbol;
+
+void program(aToken_type tok);
+aToken_type block(aToken_type tok);
+aToken_type const_declaration(aToken_type tok);
+aToken_type var_declaration(aToken_type tok);
+aToken_type proc_declaration(aToken_type tok);
+aToken_type statement(aToken_type tok);
+aToken_type condition(aToken_type tok);
+aToken_type expression(aToken_type tok);
+aToken_type term(aToken_type tok);
+aToken_type factor(aToken_type tok);
+void relation(aToken_type tok); // return type?
+aToken_type advance(aToken_type tok);
+
+void put_symbol(int kind, char name [], int num, int level, int modifier);
+void emit (int op, int l, int m);
+void print_pm0();
 
 /*THIS IS THE GLOBAL TOKEN STORAGE AVAILABLE TO ALL PARSER FUNCTIONS*/
-token_type tokArray [TOKEN_ARRAY_SIZE];
+aToken_type tokArray [TOKEN_ARRAY_SIZE];
+symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
+instruction codeArray [MAX_CODE_LENGTH];
 static int lexCtr = 0;
+static int cx = 0;
+static int symctr = 0;
 
 int main() {
 
     //Declare and Initialize Variables:
     //aToken_type *toke;
-    token_type tok;
+    aToken_type tok;
     int i = 0, j = 0;
     //int lexCtr = 0;
 
@@ -53,7 +72,7 @@ int main() {
     FILE *source;
     FILE *clean;
 
-    source = fopen("tester3.txt", "r");
+    source = fopen("tester7.txt", "r");
     clean = fopen("clean.pl0", "w");
 
     //Check if pointers are valid:
@@ -86,7 +105,8 @@ int main() {
 
         //Store value of the token (the sym type only)
         //Need to alter array typing in order to take in entire token
-        tokArray[i] = toke->t;
+        (tokArray[i]).t = toke->t;
+        (tokArray[i]).val = toke->val;
 
         // halt if nullsym is returned
         if ( toke->t == 1 )
@@ -101,7 +121,7 @@ int main() {
 
     //This is just here to test if the tokens were stored in tokArray correctly
     while (j < i){
-        printf("%d ", tokArray [j]);
+        printf("%d ", (tokArray [j]).t);
         j++;
     }
 
@@ -116,6 +136,9 @@ int main() {
     //Go through parser
     program(tok);
 
+    //Display PM0 code:
+    print_pm0();
+
 return 0;
 }
 
@@ -123,7 +146,7 @@ return 0;
 // *** PARSER ***
 
 //advance stores next token in tok
-token_type advance(token_type tok){
+aToken_type advance(aToken_type tok){
 
     lexCtr++;
 
@@ -134,77 +157,79 @@ token_type advance(token_type tok){
 
     //Commented out print to check which token is now in tok
     //Used to identify where possible errors take place in the parser
-    printf("%d \n", tok);
+    printf("%d \n", tok.t);
     return tok;
 }
 
 // comments
-void program(token_type tok){
+void program(aToken_type tok){
 
 	tok = block(tok);
 
-	if(tok != periodsym){
+	if(tok.t != periodsym){
 		error(9);
 		exit(1);
 	}
+
+	emit(SIO, 0, 2);
 
 	printf("No errors, the program is syntactically correct.\n");
 
 }
 
 // comments
-token_type block(token_type tok){
+aToken_type block(aToken_type tok){
 
-    if (tok == constsym){
-        tok = const_declaration(tok);
-    }
-
-    if (tok == varsym){
-        tok = var_declaration(tok);
-    }
-
-    if (tok == procsym){
-        tok = proc_declaration(tok);
-    }
-
+    tok = const_declaration(tok);
+    tok = var_declaration(tok);
+    tok = proc_declaration(tok);
     tok = statement(tok);
 
 	return tok;
 }
 
 // comments
-token_type const_declaration(token_type tok){
+aToken_type const_declaration(aToken_type tok){
 
-	if(tok != constsym){
+	if(tok.t != constsym){
 		return tok;
 	}
-	tok = advance(tok);
 
-	while(tok != commasym){
 
-		if(tok != identsym){
+	do {
+        tok = advance(tok);
+
+		if(tok.t != identsym){
 			error(4);
 			exit(1);
 		}
+
+        char *id = (tok.val).identifier;
 		tok = advance(tok);
 
-		if(tok != eqsym){
+		if(tok.t != eqsym){
 			error(3);
 			exit(1);
 		}
+
 		tok = advance(tok);
 
 		// are we testing fornumbersym
 		// or if its a digit [isn't this tested in lexer
 		// and it assigns numbersym?]
-		if(tok != numbersym){
+		if(tok.t != numbersym){
 			error(2);
 			exit(1);
 		}
-		tok = advance(tok);
-	}
 
-	if(tok != semicolonsym){
+		put_symbol(1, id, tok.t, 0, 0);
+
+		tok = advance(tok);
+
+	} while (tok.t == commasym);
+
+
+	if(tok.t != semicolonsym){
 		error(5);
 		exit(1);
 	}
@@ -216,57 +241,64 @@ token_type const_declaration(token_type tok){
 }
 
 // comments
-token_type var_declaration(token_type tok){
+aToken_type var_declaration(aToken_type tok){
 
-	tok = advance(tok);
-
-    if (tok != identsym){
-        error(4);
-        exit(1);
-    }
-
-    tok = advance(tok);
-
-    if (tok == commasym){
-        tok = var_declaration(tok);
+	if (tok.t != varsym){
         return tok;
-    }
+	}
 
-    else if (tok != semicolonsym){
+    int num_vars = 0;
+
+	do {
+
+        tok = advance(tok);
+        if (tok.t != identsym){
+            error(4);
+            exit(1);
+        }
+
+        num_vars++;
+
+        put_symbol(2, tok.val.identifier, 0, 0, (3 + num_vars));
+
+        tok = advance(tok);
+
+	} while (tok.t == commasym);
+
+    if (tok.t != semicolonsym){
         error(5);
         exit(1);
     }
 
-    else{
-        tok = advance(tok);
-    }
+    tok = advance(tok);
+    emit(INC, 0, 4 + num_vars);
 
 	return tok;
 }
 
 // comments
-token_type proc_declaration(token_type tok){
+aToken_type proc_declaration(aToken_type tok){
 
-	if(tok != procsym){
+	if(tok.t != procsym){
 		return tok;
 	}
-	while(tok == procsym){
+	while(tok.t == procsym){
 		tok = advance(tok);
 
-		if(tok != identsym){
+		if(tok.t != identsym){
 			error(4);
 			exit(1);
 		}
 		tok = advance(tok);
 
-		if(tok != semicolonsym){
+		if(tok.t != semicolonsym){
 			error(5);
 			exit(1);
 		}
 		tok = advance(tok);
 		tok = block(tok);
 
-		if(tok != semicolonsym){
+		if(tok.t != semicolonsym){
 			error(5);
 			exit(1);
 		}
@@ -277,97 +309,28 @@ token_type proc_declaration(token_type tok){
 }
 
 // comments
-token_type statement(token_type tok){
+aToken_type statement(aToken_type tok){
 
-	/*switch(tok){
-		case identsym:
-			tok = advance(tok);
+    int ctemp, cx1, cx2;
 
-			if(tok != becomessym){
-				error(0); // !!! input the error code !!!
-				exit(1);
-			}
-			tok = advance(tok);
-			tok = expression(tok);
-			return tok;
-			break;
-
-		case callsym:
-			tok = advance(tok);
-
-			if(tok != identsym){
-				error(14);
-				exit(1);
-			}
-			tok = advance(tok);
-			return tok;
-			break;
-
-		case beginsym:
-			tok = advance(tok);
-			tok = statement(tok);
-
-			while(tok == semicolonsym){
-				tok = advance(tok);
-				tok = statement(tok);
-			}
-
-			if(tok != endsym){
-				error(0); // !!! input the error code !!!
-				exit(1);
-			}
-			tok = advance(tok);
-			return tok;
-			break;
-
-		case ifsym:
-			tok = advance(tok);
-			tok = condition(tok);
-
-			if(tok != thensym){
-				error(16);
-				exit(1);
-			}
-			tok = advance(tok);
-			return tok;
-			break;
-
-		case whilesym:
-			tok = advance(tok);
-			tok = condition(tok);
-
-			if(tok != dosym){
-				error(18);
-				exit(1);
-			}
-			tok = advance(tok);
-			tok = statement(tok);
-			return tok;
-			break;
-
-		default:
-			//error(7); // no error, epsilon is a valid string for statement
-			break;
-
-		} // END switch
-*/
-    if (tok == identsym){
+    if (tok.t == identsym){
         tok = advance (tok);
 
-        if (tok != becomessym){
+        if (tok.t != becomessym && tok.t != semicolonsym){
             error(0); // !!! input the error code !!!
             exit(1);
         }
 
         tok = advance(tok);
         tok = expression(tok);
+
         return tok;
     }
 
-     if (tok == callsym){
+    if (tok.t == callsym){
         tok = advance(tok);
 
-        if (tok != identsym){
+        if (tok.t != identsym){
             error(14);
             exit(1);
         }
@@ -375,79 +338,98 @@ token_type statement(token_type tok){
         tok = advance(tok);
     }
 
-     if (tok == beginsym){
+    if (tok.t == beginsym){
+
         tok = advance(tok);
         tok = statement(tok);
+        emit(STO, 0, 4);
 
-        if (tok != semicolonsym){
-            error(5);
-			exit(1);
-        }
-
-        tok = advance(tok);
-
-        while (tok != semicolonsym){
+        do {
+            tok = advance(tok);
             tok = statement(tok);
-        }
+        } while (tok.t == semicolonsym);
 
-        tok = advance(tok);
-
-        if (tok != endsym){
+        if (tok.t != endsym){
             error(17); // !!! input the error code !!!
             exit(1);
         }
 
         tok = advance(tok);
 
+        emit(STO, 0, 4);
+        return tok;
+
     }
 
-     if (tok == ifsym){
+    if (tok.t == ifsym){
         tok = advance(tok);
         tok = condition(tok);
 
-        if (tok != thensym){
+        if (tok.t != thensym){
             error(16);
             exit(1);
         }
 
-        tok = advance(tok);
+        else{
+            tok = advance(tok);
+        }
+
+        ctemp = cx;
+        emit(JPC, 0, 0);
         tok = statement(tok);
+        symbol_table[ctemp].addr = cx;
+
+        return tok;
     }
 
-     if (tok == whilesym){
+    if (tok.t == whilesym){
+        cx1 = cx;
         tok = advance(tok);
         tok = condition(tok);
+        cx2 = cx;
 
-        if (tok != dosym){
+        emit(JPC, 0, 0);
+
+        if (tok.t != dosym){
             error(18);
             exit(1);
         }
 
-        tok = advance(tok);
-        tok = statement(tok);
-    }
+        else{
+            tok = advance(tok);
+        }
 
-    if (tok == readsym){
-        tok = advance(tok);
         tok = statement(tok);
-    }
+        emit(JMP, 0, cx1);
+        symbol_table[cx2].addr = cx;
 
-    if (tok == writesym){
-        tok = advance(tok);
-        tok = statement(tok);
-    }
-    else{
         return tok;
     }
 
+    if (tok.t == readsym){
+        tok = advance(tok);
+        tok = statement(tok);
+        return tok;
+    }
+
+    if (tok.t == writesym){
+        tok = advance(tok);
+        emit(SIO, 0, 0);
+        tok = factor(tok);
+        return tok;
+    }
+
+    else{
+        return tok;
+    }
 
     return tok;
 }
 
 // comments
-token_type condition(token_type tok){
+aToken_type condition(aToken_type tok){
 
-	if(tok == oddsym){
+	if(tok.t == oddsym){
 		tok = advance(tok);
 		tok = expression(tok);
 	}else{
@@ -462,9 +444,9 @@ token_type condition(token_type tok){
 	return tok;
 }
 
-void relation(token_type tok){
+void relation(aToken_type tok){
 
-	switch(tok){
+	switch(tok.t){
 		case eqsym:
 			break;
 		case neqsym:
@@ -485,55 +467,82 @@ void relation(token_type tok){
 }
 
 // comments
-token_type expression(token_type tok){
+aToken_type expression(aToken_type tok){
 
-	/*if(tok != plussym || tok != minussym){
-		return tok;
-	}
-    */
+	int addop;
 
-    if (tok == plussym || tok == minussym){
+    if (tok.t == plussym || tok.t == minussym){
+        addop = tok.t;
         tok = advance(tok);
+        tok = term(tok);
+
+        if (addop == minussym){
+            emit(OPR, 0, NEG);
+        }
+
+        if (addop == plussym){
+            emit(OPR, 0, ADD);
+        }
     }
 
-    tok = term(tok);
+    else{
+        tok = term(tok);
+    }
 
-	while(tok == plussym || tok == minussym){
+	while(tok.t == plussym || tok.t == minussym){
+		addop = tok.t;
 		tok = advance(tok);
 		tok = term(tok);
+		if (addop == plussym)
+            emit(OPR, 0, ADD); // addition
+        else
+            emit(OPR, 0, SUB); // subtraction
 	}
 
 return tok;
 }
 
 // comments
-token_type term(token_type tok){
+aToken_type term(aToken_type tok){
+	int mulop;
+
 	tok = factor(tok);
 
-	while(tok == multsym || tok == slashsym){
+	while(tok.t == multsym || tok.t == slashsym){
+		mulop = tok.t;
 		tok = advance(tok);
 		tok = factor(tok);
+
+		if (mulop == multsym){
+            emit(OPR, 0, MUL);
+		}
+
+		else{
+            emit(OPR, 0, DIV);
+		}
 	}
 
 	return tok;
 }
 
 // comments
-token_type factor(token_type tok){
+aToken_type factor(aToken_type tok){
 
-		if (tok == identsym){
+		if (tok.t == identsym){
+            tok = advance(tok);
+            emit(LOD, 0, 4);
+		}
+
+		else if (tok.t == numbersym){
+            emit(LIT, 0, (tok.val).number);
             tok = advance(tok);
 		}
 
-		else if (tok == numbersym){
-            tok = advance(tok);
-		}
-
-		else if (tok == lparentsym){
+		else if (tok.t == lparentsym){
             tok = advance(tok);
             tok = expression(tok);
 
-            if (tok != rparentsym){
+            if (tok.t != rparentsym){
                 error(22);
 				exit(1);
             }
@@ -548,5 +557,34 @@ token_type factor(token_type tok){
 		}
 
 		return tok;
-
 	} // END switch
+
+void put_symbol(int kind, char name [], int num, int level, int modifier){
+    (symbol_table [symctr]).kind = kind;
+    //(symbol_table [symctr]).name = name;
+    (symbol_table [symctr]).val = num;
+    (symbol_table [symctr]).level = level;
+    (symbol_table [symctr]).addr = modifier;
+}
+
+void emit(int op, int l, int m){
+    if(cx > MAX_CODE_LENGTH){
+        error(26);
+        exit(1);
+    }
+    else{
+        (codeArray[cx]).op= op; // opcode
+        (codeArray[cx]).l = l; // lexicographical level
+        (codeArray[cx]).m = m; // modifier
+        cx++;
+    }
+}
+
+void print_pm0(){
+    int i;
+
+    for (i = 0; i < cx; i++){
+        printf("%d %d %d\n", (codeArray[i]).op, (codeArray[i]).l, (codeArray[i]).m);
+    }
+
+}

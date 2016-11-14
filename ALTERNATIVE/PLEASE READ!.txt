@@ -1,3 +1,4 @@
+Megan Chipman
 11/09/2016
 NOTE: Please keep in mind this is me experimenting what has already been done!
       If the parser itself seems heavily changed, then please don't worry. It's just me
@@ -45,3 +46,34 @@ UPDATES:
 Further modified parser for error checking. 
 Corrected a portion of statement that previously did not check for semicolons correctly. Please
 note that all other changes are still for experiment purposes only at this time. 
+
+11/11/2016
+(continued debugging parser before bed)
+
+11/12/2016
+(unable to work on project due to non-flexible plans lasting 8:00am - 8:00pm)
+
+11/13/2016
+NOTE: Work done is sufficient enough to be integrated with parser.c
+- Added in error code 26 that checks to make sure that the code included in the PM0 array is not
+  too long. This was specified by the professor. 
+- Further debugged the parser to ensure that it works for test cases that do not include
+  complex nested code input. In order to trace and find errors I used paper and followed the
+  recursive parser code by hand. Referred to notes given by the professor in both lecture
+  slides and document details. 
+- Added function for adding to symbol table (needs debugging for the part of the table that
+  takes in the name; this portion was therefore commented out so I could focus on more important
+  assignment specifications. NOTE: we are not being graded on symbol table input/output. See 
+  Assignment Details Document)
+- Added the emit function as specified in class notes. This function does not need debugging.
+- Added two more global arrays, one that stores the symbol table content, and the other that 
+  stores PM0 code. Additionally added cx, a global counter to the PM0 array.
+- Added vm.h that includes the structures holding the PM0 code types. (NOTE: vm.c does not 
+  need to be integrated into the project, rather we need to run the resulting PM0 code through
+  vm.c and send a file (x5 I believe) containing the stack output.  
+- Added the proper PM0 codes to the parser in order for the opcode, lexicographical level, and
+  modification to be stored in code array (NOTE: code array and method of adding PM0 to it
+  were done as specified by the professor, not all PM0 codes were added and debugged 
+  due to health concerns)
+- NOTE: The entirety of alternative folder has been tested on codeblocks and compiles and 
+  runs without warnings or errors.  
