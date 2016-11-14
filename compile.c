@@ -24,6 +24,7 @@
 #include "tokens.h"
 #include "error.h"
 #include "lexer.h"
+#include "vm.h"
 
 int main(int argc, char* argv[]) {
 
@@ -43,17 +44,20 @@ int main(int argc, char* argv[]) {
         return;
     }
 
-    source = fopen("tester.txt", "r"); //replace "tester.txt" with argv[1] for command line testing
+    //remove the following line for command line execution
+    argv[1] = "tester.txt";
+
+    source = fopen(argv[1], "r"); //replace filename with argv[1] for command line testing
     clean = fopen("clean.pl0", "w");
 
     //Check if pointers are valid:
     if (source == NULL){
-        printf("Unable to open file.\n");
+        printf("Unable to open source file at %s/%s.\n",argv[0], argv[1]);
         return;
     }
 
     if (clean == NULL){
-        printf("Unable to open file.\n");
+        printf("Unable to open clean file for writing.\n");
         return;
     }
 
@@ -91,6 +95,7 @@ int main(int argc, char* argv[]) {
         //printf("\n
 
     }
+    //Beautification
     printf("\n\nParser output:\n------\n");
 
     //Back to the beginning
@@ -98,6 +103,9 @@ int main(int argc, char* argv[]) {
 
     //run the parser & code generator
     program();
+
+    //Beautification
+    printf("\n");
 
     //Close the cleanFile pointer
     fclose(clean);

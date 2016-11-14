@@ -1,0 +1,9 @@
+begin
+
+	var 4mul8 := 33; /* identifier does not start with letter */
+	var r := 77;
+	
+	/* Commenty comment */
+	var m := r + r;
+
+end.

@@ -1,0 +1,25 @@
+var l;
+var m;
+var n;
+var o;
+var p;
+var q;
+var r;
+var s;
+var t;
+
+begin
+/* Commenty comment */
+
+ 	t := 0;
+ 	r := 10;
+/* Commenty comment */
+	m := r + r;
+	o := m * m;
+/* Commenty comment */
+/* Commenty comment */
+IF t < o THEN t := m - r;
+
+end.
+
+

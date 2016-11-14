@@ -1,0 +1,6 @@
+BEGIN
+
+	var foo := 66536; /* exceeds allowable amount */
+	var r := foo;
+
+end.

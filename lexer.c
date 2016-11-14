@@ -118,6 +118,8 @@ int main(int argc, char* argv[])
         displaySourceFile(cleanFile);
     }
 */
+
+
 int do_lex(FILE* cleanFile){
 
     printf("\n");
@@ -241,6 +243,7 @@ void displayError(int code, int var)
             printf("unknown error occured\n");
             break;
     }
+    exit(1);
 
 } // END display error
 
