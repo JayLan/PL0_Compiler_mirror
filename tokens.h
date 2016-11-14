@@ -50,6 +50,13 @@ typedef struct aToken_type
 
 } aToken_type;
 
+bool addToken(aToken_type* t);
+aToken_type nextToken();
+aToken_type rewindParseTokens();
+void  displayToken(aToken_type t);
 
+aToken_type* tokArr;
+int lexCtr;
+int parseCtr;
 
 #endif // TOKENS_H

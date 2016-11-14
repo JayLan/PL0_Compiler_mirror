@@ -70,7 +70,6 @@ int  setOptions (int argc, char* argv[], struct Options* Options);
 int  removeComments (FILE* infile, FILE* cleanFile);
 void displayError(int code, int var);
 void displaySourceFile(FILE* ifp);
-void displayToken(aToken_type* t);
 void freeToken(aToken_type* t);
 void readnextc(FILE* f, char* buff);
 
@@ -282,78 +281,7 @@ void displaySourceFile(FILE* ifp){
 } // END display source file
 
 //Takes in a valid aToken_type pointer t that contains the kind of token.
-void  displayToken(aToken_type* t)
-{
-    //Declare an array with possible token types.
-    const char* tokenTypeNames[] = {
-        "PLACE_HOLDER",//  to align other values with enum token_type (starts at 1)
-        "nulsym",   //  1
-        "identsym", //  2
-        "numbersym",//  3
-        "+",        //  4
-        "-",        //  5
-        "*",        //  6
-        "/",        //  7
-        "odd",      //  8
-        "=",        //  9
-        "<>",       // 10
-        "<",        // 11
-        "<=",       // 12
-        ">",        // 13
-        ">=",       // 14
-        "(",        // 15
-        ")",        // 16
-        ",",        // 17
-        ";",        // 18
-        ".",        // 19
-        ":=",       // 20
-        "begin",    // 21
-        "end",      // 22
-        "if",       // 23
-        "then",     // 24
-        "while",    // 25
-        "do",       // 26
-        "call",     // 27
-        "const",    // 28
-        "var",      // 29
-        "procedure",// 30
-        "write",    // 31
-        "read",     // 32
-        "else" };   // 33
 
-    /*if(t->t == 2)
-    {
-        printf("%-13s", t->val.identifier);
-    }
-    else if(t->t == 3)
-    {
-        printf("%-13d", t->val.number);
-    }
-    else
-    {
-        printf("%-13s", tokenTypeNames[t->t]);
-    }
-
-    printf("%d\n", t->t);
-
-    return;
-*/
-
-printf("%d ", t->t);
-
-    if(t->t == 2)
-    {
-        printf("%s ", t->val.identifier);
-    }
-    else if(t->t == 3)
-    {
-        printf("%d ", t->val.number);
-    }
-
-
-    return;
-
-} // END display token
 
 
 //Frees the memory taken up by aToken_type pointer t

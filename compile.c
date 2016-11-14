@@ -26,10 +26,12 @@
 #include "lexer.h"
 #include "vm.h"
 
+aToken_type tok; // *** can this be deleted? ***
+
 int main(int argc, char* argv[]) {
 
     //Declare and Initialize Variables:
-    extern aToken_type* tok;
+    aToken_type tok;
 
     //Open and Declare File Pointers:
     FILE *source;
@@ -45,7 +47,7 @@ int main(int argc, char* argv[]) {
     }
 
     //remove the following line for command line execution
-    argv[1] = "tester.txt";
+    argv[1] = "tester2.pl0";
 
     source = fopen(argv[1], "r"); //replace filename with argv[1] for command line testing
     clean = fopen("clean.pl0", "w");
@@ -80,13 +82,13 @@ int main(int argc, char* argv[]) {
         tok = nextToken();
 
         //test to make sure a token was retrieved
-        if (tok == NULL){
+        /*if (tok == NULL){
             printf("invalid token\n");
             break;
-        }
+        }*/
 
         // halt if nullsym is returned
-        if ( tok->t == 1 )
+        if ( tok.t == 1 )
             break;
 
         //Display the appropriate token, then free it
@@ -100,13 +102,17 @@ int main(int argc, char* argv[]) {
 
     //Back to the beginning
     tok = rewindParseTokens();
+    //printf("tok = ");
+    //displayToken(tok);
 
     //run the parser & code generator
-    program();
+    program(tok);
 
     //Beautification
     printf("\n");
 
     //Close the cleanFile pointer
     fclose(clean);
+
+    print_pm0();
 }

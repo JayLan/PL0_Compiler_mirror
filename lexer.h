@@ -23,6 +23,5 @@
 
 void displaySourceFile(FILE* ifp);
 int  removeComments (FILE* infile, FILE* cleanFile);
-void displayToken(aToken_type* t);
 void freeToken(aToken_type* t);
 aToken_type* getNextToken(FILE* cleanFile);
