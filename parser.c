@@ -276,6 +276,8 @@ aToken_type statement(aToken_type tok){
             tok = statement(tok);
         } while (tok.t == semicolonsym);
 
+        tok = statement(tok);
+
         if (tok.t != endsym){
             error(17); // !!! input the error code !!!
         }
