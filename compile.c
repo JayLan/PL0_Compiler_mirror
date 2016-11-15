@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
         printf("argv[1] = %s\n", argv[1]);
         printf("argv[2] = %s\n", argv[2]);
         printf("invalid format, please use: ./compile <input> <output>\n");
-        return;
+        return 0;
     }
 
     // remove the following line for command line execution
@@ -52,12 +52,12 @@ int main(int argc, char* argv[]) {
     // Check if pointers are valid:
     if (source == NULL){
         printf("Unable to open source file at %s/%s.\n",argv[0], argv[1]);
-        return;
+        return 0;
     }
 
     if (clean == NULL){
         printf("Unable to open clean file for writing.\n");
-        return;
+        return 0;
     }
 
     //Remove Comments from Source File:
@@ -109,6 +109,7 @@ int main(int argc, char* argv[]) {
     printf("\n\nPM0 output:\n------\n");
     print_pm0(codeFile);
 
+    return 0;
 }
 
 

@@ -32,5 +32,7 @@ typedef enum {
 	procIdentInExpErr, expRightParenErr, badFactorSymErr, badExpSymErr, numTooLargeErr
 } err_type;
 
+void print(char* message);
+bool error(int errnum);
 
 #endif

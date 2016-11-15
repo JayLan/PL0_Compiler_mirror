@@ -84,7 +84,6 @@ void program(aToken_type tok){
 
 	if(tok.t != periodsym){
 		error(9);
-		exit(1);
 	}
 
 	emit(SIO, 0, 2);
