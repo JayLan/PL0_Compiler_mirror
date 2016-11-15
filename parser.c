@@ -226,7 +226,7 @@ aToken_type statement(aToken_type tok){
         tok = advance (tok);
 
         if(tok.t != becomessym && tok.t != semicolonsym){
-            error(0); // *** enter the appropriate error code ***
+            error(3);
         }
 
         tok = advance(tok);
@@ -260,12 +260,12 @@ aToken_type statement(aToken_type tok){
         tok = statement(tok);
 
         if(tok.t != endsym){
-            error(17); // !!! input the error code !!!
+            error(17);
         }
 
         tok = advance(tok);
         emit(STO, 0, 4);
-        
+
         return tok;
 
     }
@@ -313,7 +313,7 @@ aToken_type statement(aToken_type tok){
         tok = advance(tok);
         emit(SIO, 0, 1);
         tok = statement(tok);
-        
+
         return tok;
     }
 
@@ -321,7 +321,7 @@ aToken_type statement(aToken_type tok){
         tok = advance(tok);
         emit(SIO, 0, 0);
         tok = factor(tok);
-        
+
         return tok;
     }else{
         return tok;

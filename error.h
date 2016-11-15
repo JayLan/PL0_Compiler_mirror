@@ -24,14 +24,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-typedef enum {
-	becomesErr = 1, expNumErr, ExpEqlErr, ExpIdentErr, expCommaSemicolErr,
-	procDeclErr, expStmtErr, badSymAfterStmtBlkErr, expPeriodErr, missingSemicolErr,
-	undeclIdentErr, improperAssnErr, expAssnOpErr, identAfterCallErr, callErr,
-	expThenErr, expEndOrSemicolErr, expDoErr, badSymAfterStmtErr, expRelOpErr,
-	procIdentInExpErr, expRightParenErr, badFactorSymErr, badExpSymErr, numTooLargeErr
-} err_type;
-
 void print(char* message);
 bool error(int errnum);
 

@@ -30,105 +30,86 @@ void print(char* message){
 bool error(int errnum){
     printf("\nERROR %d: ", errnum);
     switch (errnum){
-        //Error 1
-        case becomesErr:
+        case 1:
             print("Use = instead of :=");
             break;
-        //Error 2
-        case expNumErr:
+        case 2:
             print("= must be followed by a number.");
             break;
-        //Error 3
-        case ExpEqlErr:
+        case 3:
             print("Identifier must be followed by =");
             break;
-        //Error 4
-        case ExpIdentErr:
+        case 4:
             print("'const', 'var', 'procedure' must be followed by identifier");
             break;
-        //Error 5
-        case expCommaSemicolErr:
+        case 5:
             print("Semicolon or comma missing.");
             break;
-        //Error 6
-        case procDeclErr:
+        case 6:
             print("Incorrect symbol after procedure declaration.");
             break;
-        //Error 7
-        case expStmtErr:
+        case 7:
             print("Statement expected.");
             break;
-        //Error 8
-        case badSymAfterStmtBlkErr:
+        case 8:
             print("Incorrect symbol after statement part in block.");
             break;
-        //Error 9
-        case expPeriodErr:
+        case 9:
             print("Period expected.");
             break;
-        //Error 10
-        case missingSemicolErr:
+        case 10:
             print("Semicolon between statements missing.");
             break;
-        //Error 11
-        case undeclIdentErr:
+        case 11:
             print("Undeclared identifier.");
             break;
-        //Error 12
-        case improperAssnErr:
+        case 12:
             print("Assignment to constant or procedure is not allowed.");
             break;
-        //Error 13
-        case expAssnOpErr:
+        case 13:
             print("Assignment operator expected.");
             break;
-        //Error 14
-        case identAfterCallErr:
+        case 14:
             print("'call' must be followed by an identifier.");
             break;
-        //Error 15
-        case callErr:
+        case 15:
             print("Call of a constant or variable is meaningless.");
             break;
-        //Error 16
-        case expThenErr:
+        case 16:
             print("'then' expected.");
             break;
-        //Error 17
-        case expEndOrSemicolErr:
+        case 17:
             print("Semicolon or 'end' expected");
             break;
-        //Error 18
-        case expDoErr:
+        case 18:
             print("'do' expected.");
             break;
-        //Error 19
-        case badSymAfterStmtErr:
+        case 19:
             print("Incorrect symbol following statement.");
             break;
-        //Error 20
-        case expRelOpErr:
+        case 20:
             print("Relational operator expected.");
             break;
-        //Error 21
-        case procIdentInExpErr:
+        case 21:
             print("Expression must not contain a procedure identifier");
             break;
-        //Error 22
-        case expRightParenErr:
+        case 22:
             print("Right parenthesis missing.");
             break;
-        //Error 23
-        case badFactorSymErr:
+        case 23:
             print("The preceding factor cannot begin with this symbol.");
             break;
-        //Error 24
-        case badExpSymErr:
+        case 24:
             print("An expression cannot begin with this symbol.");
             break;
-        //Error 25
-        case numTooLargeErr:
+        case 25:
             print("This number is too large.");
+            break;
+        case 26:
+            print("This number is too large.");
+            break;
+        default:
+            print("wooooo mystery error (try a number 1-26)");
             break;
     }
     exit(1);
