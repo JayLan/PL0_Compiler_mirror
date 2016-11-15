@@ -39,7 +39,7 @@ int do_lex(FILE* clean);
 aToken_type* getNextToken(FILE* cleanFile);
 int  getDFAcolumnNumber (char c);
 int  nextState(int currentState, int input);
-int  stateToTokenTypeOrdinal(int s);
+token_type  stateToTokenTypeOrdinal(int s);
 int  setOptions (int argc, char* argv[], struct Options* Options);
 int  removeComments (FILE* infile, FILE* cleanFile);
 void displayError(int code, int var);
@@ -292,19 +292,19 @@ aToken_type* getNextToken(FILE* cleanFile){
     int DFAstate_prev  = 0;
     int DFAcolumn      = DFA_MATRIX_NUMBER_COLUMNS+1;
     int i              = 0;
-    int tokenTypeOrdinal = 0;
+    token_type tokenTypeOrdinal = invalidsym;
 
     // longest identifier is 12 but a number with many leading 0's could be valid
     // ! things could go BAD if a number longer than 254 digits long is read !
-    char* lexeme = calloc(255, sizeof(char));
+    char* lexeme = (char*) calloc(255, sizeof(char));
     char c = 9; // default to tab
 
     aToken_type* t = (aToken_type*)malloc(sizeof(aToken_type));
 
     // return nullsym token on eof
     if (feof(cleanFile)){
-        t->t = 1;
-        t->t = 1;
+        t->t = nulsym;
+        t->t = nulsym;
         return t;
     }
 
@@ -400,7 +400,7 @@ aToken_type* getNextToken(FILE* cleanFile){
         case(0):
 
             displayError(11, 0);
-            t->t = 1; // signal halt to caller
+            t->t = nulsym; // signal halt to caller
             free(lexeme);
             break;
 
@@ -417,7 +417,7 @@ aToken_type* getNextToken(FILE* cleanFile){
             if( (i > 32767) || (i < -32768) )
             {
                 // display error and signal halt
-                t->t          = 1;
+                t->t          = nulsym;
                 DFAstate      = 0;
                 displayError(4, i);
                 break;
@@ -597,11 +597,11 @@ int removeComments(FILE* inFile, FILE* cleanFile){
 }
 
 // will return 0 on invalid character
-int stateToTokenTypeOrdinal(int s){
+token_type stateToTokenTypeOrdinal(int s){
 
     if( (s < 0 ) || ( s >= DFA_MATRIX_NUMBER_STATES) ){
         displayError(7, s);
-        return 0;
+        return invalidsym;
     }
 
     int ordinalTable[76] = {
@@ -682,7 +682,7 @@ int stateToTokenTypeOrdinal(int s){
         /*f74 )  */         16,
         /* 75 DEAD */       1};
 
-    return ordinalTable[s];
+    return (token_type) ordinalTable[s];
 
 } // END state to token type ordinal
 

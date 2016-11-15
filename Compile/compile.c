@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "tokens.h"
+#include "parser.h"
 #include "error.h"
 #include "lexer.h"
 #include "vm.h"
@@ -68,7 +69,7 @@ int main(int argc, char* argv[]) {
     fclose(clean);
 
     // Have clean point to the new, clean file read-only:
-    clean = fopen("clean.pl0", "r");
+    clean = fopen("loop_mult.pl0", "r");
 
     // run the lexer
     do_lex(clean);
@@ -94,8 +95,8 @@ int main(int argc, char* argv[]) {
     program(tok);
 
     //print the symbol table to std out
-    /*printf("\n-------------------SYMBOLS-------------------\n");
-    print_symboltable();*/
+    printf("\n-------------------SYMBOLS-------------------\n");
+    print_symboltable();
 
     // Close the cleanFile pointer
     fclose(clean);

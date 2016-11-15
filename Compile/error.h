@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-void print(char* message);
-bool error(int errnum);
+void error(int errnum);
 
 #endif

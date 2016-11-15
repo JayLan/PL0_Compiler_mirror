@@ -27,16 +27,16 @@
 #ifndef TOKENS_C
 #define TOKENS_C
 
-
+/*
 bool addToken(aToken_type* t);
 aToken_type nextToken();
 aToken_type rewindParseTokens();
 void  displayToken(aToken_type t);
 
-
 extern aToken_type* tokArr;
 extern int lexCtr;
 extern int parseCtr;
+*/
 
 bool addToken(aToken_type* t){
 

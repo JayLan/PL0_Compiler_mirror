@@ -23,6 +23,7 @@
 #include "tokens.h"
 #include "error.h"
 #include "lexer.h"
+#include "parser.h"
 #include "vm.h"
 
 #define MAX_SYMBOL_TABLE_SIZE 100
@@ -55,6 +56,8 @@ int symbol_level(int symbol_pos);
 int symbol_address(int symbol_pos);
 void emit (int op, int l, int m);
 void print_pm0(FILE* outFile);
+void print_symboltable();
+int find_valid_symbol_kind(char* identstr, int kind);
 
 /*SYMBOL  TABLE and PM0 CODE ARRAY AVAIL TO ALL PARSER FUNCTIONS*/
 symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
@@ -479,7 +482,13 @@ aToken_type factor(aToken_type tok){
             //check to make sure ident is a valid variable symbol stored in symbol table
             int sym_pos = find_valid_symbol_kind(tok.val.identifier, -1);
             tok = advance(tok);
-            emit(LOD, 0, 4);
+            // you need to distinguish between a constant and a variable
+            if (symbol_kind(sym_pos) == 1){
+                emit(LIT, 0, tok.val.number);
+            }
+            else {
+              emit(LOD, 0, symbol_address(sym_pos));
+            }
 		}else if(tok.t == numbersym){
             emit(LIT, 0, (tok.val).number);
             tok = advance(tok);
@@ -508,7 +517,7 @@ void put_symbol(int kind, char* name, int num, int level, int modifier){
     //store symbol type
     symbol_table[symctr].kind = kind;
     //store string name
-    symbol_table[symctr].name = malloc(sizeof(char) * MAX_IDENT_LENGTH);
+    symbol_table[symctr].name = (char*) malloc(sizeof(char) * MAX_IDENT_LENGTH);
     strcpy( symbol_table[symctr].name, name);
     //store int value
     symbol_table[symctr].val = num;

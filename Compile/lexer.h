@@ -17,6 +17,9 @@
 //|
 //|===========================================================================
 
+#ifndef LEXER_H
+#define LEXER_H
+
 #include "tokens.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,3 +30,5 @@ int  removeComments (FILE* infile, FILE* cleanFile);
 void displayError(int code, int var);
 void displaySourceFile(FILE* ifp);
 void freeToken(aToken_type* t);
+
+#endif // LEXER_H

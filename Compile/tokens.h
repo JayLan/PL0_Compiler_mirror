@@ -27,7 +27,8 @@
 #define MAX_IDENT_LENGTH 12
 
 typedef enum token {
-  nulsym = 1,
+  invalidsym = 0,
+  nulsym,
   identsym,     //2
   numbersym,    //3
   plussym,      //4

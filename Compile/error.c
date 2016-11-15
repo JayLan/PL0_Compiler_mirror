@@ -23,99 +23,96 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void print(char* message){
-    printf(message);
-}
 
-bool error(int errnum){
+void error(int errnum){
     printf("\nPARSE ERROR %d: ", errnum);
     switch (errnum){
         case 1:
-            print("Use = instead of :=");
+            printf("Use = instead of :=");
             break;
         case 2:
-            print("= must be followed by a number.");
+            printf("= must be followed by a number.");
             break;
         case 3:
-            print("Identifier must be followed by =");
+            printf("Identifier must be followed by =");
             break;
         case 4:
-            print("'const', 'var', 'procedure' must be followed by identifier");
+            printf("'const', 'var', 'procedure' must be followed by identifier");
             break;
         case 5:
-            print("Semicolon or comma missing.");
+            printf("Semicolon or comma missing.");
             break;
         case 6:
-            print("Incorrect symbol after procedure declaration.");
+            printf("Incorrect symbol after procedure declaration.");
             break;
         case 7:
-            print("Statement expected.");
+            printf("Statement expected.");
             break;
         case 8:
-            print("Incorrect symbol after statement part in block.");
+            printf("Incorrect symbol after statement part in block.");
             break;
         case 9:
-            print("Period expected.");
+            printf("Period expected.");
             break;
         case 10:
-            print("Semicolon between statements missing.");
+            printf("Semicolon between statements missing.");
             break;
         case 11:
-            print("Undeclared identifier.");
+            printf("Undeclared identifier.");
             break;
         case 12:
-            print("Assignment to constant or procedure is not allowed.");
+            printf("Assignment to constant or procedure is not allowed.");
             break;
         case 13:
-            print("Assignment operator expected.");
+            printf("Assignment operator expected.");
             break;
         case 14:
-            print("'call' must be followed by an identifier.");
+            printf("'call' must be followed by an identifier.");
             break;
         case 15:
-            print("Call of a constant or variable is meaningless.");
+            printf("Call of a constant or variable is meaningless.");
             break;
         case 16:
-            print("'then' expected.");
+            printf("'then' expected.");
             break;
         case 17:
-            print("'end' expected");
+            printf("'end' expected");
             break;
         case 18:
-            print("'do' expected.");
+            printf("'do' expected.");
             break;
         case 19:
-            print("Incorrect symbol following statement.");
+            printf("Incorrect symbol following statement.");
             break;
         case 20:
-            print("Relational operator expected.");
+            printf("Relational operator expected.");
             break;
         case 21:
-            print("Expression must not contain a procedure identifier");
+            printf("Expression must not contain a procedure identifier");
             break;
         case 22:
-            print("Right parenthesis missing.");
+            printf("Right parenthesis missing.");
             break;
         case 23:
-            print("The preceding factor cannot begin with this symbol.");
+            printf("The preceding factor cannot begin with this symbol.");
             break;
         case 24:
-            print("An expression cannot begin with this symbol.");
+            printf("An expression cannot begin with this symbol.");
             break;
         case 25:
-            print("This number is too large.");
+            printf("This number is too large.");
             break;
         case 26:
-            print("The code is too long.");
+            printf("The code is too long.");
             break;
         case 27:
-            print("'read' must be followed by an identifier.");
+            printf("'read' must be followed by an identifier.");
             break;
         case 28:
-            print("'write' must be followed by an identifier.");
+            printf("'write' must be followed by an identifier.");
             break;
         default:
-            print("wooooo mystery error (try a number 1-28)");
+            printf("wooooo mystery error (try a number 1-28)");
             break;
     }
     exit(1);
