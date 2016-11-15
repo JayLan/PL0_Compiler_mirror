@@ -28,7 +28,7 @@ void print(char* message){
 }
 
 bool error(int errnum){
-    printf("ERROR: ");
+    printf("\nERROR %d: ", errnum);
     switch (errnum){
         //Error 1
         case becomesErr:
@@ -97,7 +97,6 @@ bool error(int errnum){
         //Error 17
         case expEndOrSemicolErr:
             print("Semicolon or 'end' expected");
-            exit(1);
             break;
         //Error 18
         case expDoErr:
@@ -110,7 +109,6 @@ bool error(int errnum){
         //Error 20
         case expRelOpErr:
             print("Relational operator expected.");
-            exit(1);
             break;
         //Error 21
         case procIdentInExpErr:

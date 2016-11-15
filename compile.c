@@ -26,8 +26,6 @@
 #include "lexer.h"
 #include "vm.h"
 
-aToken_type tok; // *** can this be deleted? ***
-
 int main(int argc, char* argv[]) {
 
     //Declare and Initialize Variables:
@@ -116,5 +114,6 @@ int main(int argc, char* argv[]) {
 
     FILE* codeFile = fopen(argv[2], "w+");
 
+    printf("\n\nPM0 output:\n------\n");
     print_pm0(codeFile);
 }
