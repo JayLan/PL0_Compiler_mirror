@@ -25,10 +25,11 @@
 #include "vm.h"
 
 #define MAX_SYMBOL_TABLE_SIZE 100
+#define MAX_IDENT_LENGTH 12
 
 typedef struct symbol {
 	int kind; // const = 1, var = 2, proc = 3
-	char name[12]; // name up to 11 chars
+	char* name; // name up to 11 chars
 	int val; // number (ASCII value)
 	int level; // L level
 	int addr; // M address
@@ -47,9 +48,13 @@ aToken_type factor(aToken_type tok);
 void relation(aToken_type tok);
 aToken_type advance(aToken_type tok);
 
-void put_symbol(int kind, char name [], int num, int level, int modifier);
+void put_symbol(int kind, char* name, int num, int level, int modifier);
+int find_symbol(char* identstr);
+int symbol_kind(int symbol_pos);
+int symbol_level(int symbol_pos);
+int symbol_address(int symbol_pos);
 void emit (int op, int l, int m);
-void print_pm0();
+void print_pm0(FILE* outFile);
 
 /*THIS IS THE GLOBAL TOKEN STORAGE AVAILABLE TO ALL PARSER FUNCTIONS*/
 
@@ -156,7 +161,7 @@ aToken_type var_declaration(aToken_type tok){
         //printf("tok not varsym- returning from var_declaration\n");
         return tok;
 	}
-	
+
     int num_vars = 0;
 
 	do{
@@ -190,7 +195,7 @@ aToken_type proc_declaration(aToken_type tok){
 	if(tok.t != procsym){
 		return tok;
 	}
-	
+
 	while(tok.t == procsym){
 		tok = advance(tok);
 
@@ -251,7 +256,7 @@ aToken_type statement(aToken_type tok){
         do{
             tok = advance(tok);
             tok = statement(tok);
-            
+
         }while(tok.t == semicolonsym);
 
         tok = statement(tok);
@@ -332,7 +337,7 @@ aToken_type condition(aToken_type tok){
 		tok = advance(tok);
 		emit(OPR, 0, 6);
 		tok = expression(tok);
-		
+
 	}else{
 		tok = expression(tok);
 		relation(tok);
@@ -388,7 +393,7 @@ aToken_type expression(aToken_type tok){
         if(addop == plussym){
             emit(OPR, 0, ADD);
         }
-        
+
     }else{
         tok = term(tok);
     }
@@ -397,17 +402,17 @@ aToken_type expression(aToken_type tok){
 		addop = tok.t;
 		tok = advance(tok);
 		tok = term(tok);
-		
+
 		if (addop == plussym){
             emit(OPR, 0, ADD); // addition
-            
+
         }else{
             emit(OPR, 0, SUB); // subtraction
         }
 	}
 
 	return tok;
-	
+
 }
 
 // Handles the terms
@@ -457,17 +462,51 @@ aToken_type factor(aToken_type tok){
 		return tok;
 }
 
-void put_symbol(int kind, char name [], int num, int level, int modifier){
-    (symbol_table [symctr]).kind = kind;
-    (symbol_table [symctr]).val = num;
-    (symbol_table [symctr]).level = level;
-    (symbol_table [symctr]).addr = modifier;
+void put_symbol(int kind, char* name, int num, int level, int modifier){
+    //bounds check
+    if (symctr >= MAX_SYMBOL_TABLE_SIZE){
+        error(26);
+    }
+    //store symbol type
+    symbol_table[symctr].kind = kind;
+    //store string name
+    symbol_table[symctr].name = malloc(sizeof(char) * MAX_IDENT_LENGTH);
+    strcpy( symbol_table[symctr].name, name);
+    //store int value
+    symbol_table[symctr].val = num;
+    //store int lexicographical level
+    symbol_table[symctr].level = level;
+    //store modifier
+    symbol_table[symctr].addr = modifier;
+    //increase symbol counter
+    symctr++;
+}
+
+int find_symbol(char* identstr){
+    int i;
+    for (i=0; i < symctr; i++){
+        if (strcmp(identstr, symbol_table[i].name) == 0){
+            return i;
+        }
+    }
+    return 0;
+}
+
+int symbol_kind(int symbol_pos){
+    return symbol_table[symbol_pos].kind;
+}
+
+int symbol_level(int symbol_pos){
+    return symbol_table[symbol_pos].level;
+}
+
+int symbol_address(int symbol_pos){
+    return symbol_table[symbol_pos].addr;
 }
 
 void emit(int op, int l, int m){
     if(cx > MAX_CODE_LENGTH){
         error(26);
-        exit(1);
     }else{
         (codeArray[cx]).op= op; // opcode
         (codeArray[cx]).l = l; // lexicographical level
