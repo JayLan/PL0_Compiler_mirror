@@ -76,9 +76,8 @@ aToken_type advance(aToken_type tok){
 // comments
 void program(aToken_type tok){
 
-    //printf("program function | token is %d\n", tok.t);
-    advance(tok);
-    //printf("advancing at start | token is %d\n", tok.t);
+    //consume first token
+    advance(tok);8
 
 	tok = block(tok);
 
@@ -110,24 +109,20 @@ aToken_type const_declaration(aToken_type tok){
     //printf("const_declaration function | token is %d\n", tok.t);
 
 	if(tok.t != constsym){
-        //printf("tok != constsym, returning from const_declaration\n");
 		return tok;
 	}
 
 
 	do {
-        //printf("looping in const_declaration\n");
         tok = advance(tok);
 
 		if(tok.t != identsym){
-            //printf("not an ident sym- exiting from const_declaration with error\n");
 			error(4);
 		}
         char *id = (tok.val).identifier;
 		tok = advance(tok);
 
 		if(tok.t != eqsym){
-            //printf("not an eq sym- exiting from const_declaration with error\n");
 			error(3);
 		}
 		tok = advance(tok);
@@ -135,7 +130,10 @@ aToken_type const_declaration(aToken_type tok){
 		if(tok.t != numbersym){
 			error(2);
 		}
+
+		//add constant to symbol table
 		put_symbol(1, id, tok.t, 0, 0);
+
 		tok = advance(tok);
 
 	}while (tok.t == commasym);
@@ -156,22 +154,20 @@ aToken_type var_declaration(aToken_type tok){
     //printf("var_declaration function | token is %d\n", tok.t);
 
 	if(tok.t != varsym){
-        //printf("tok not varsym- returning from var_declaration\n");
         return tok;
 	}
 
     int num_vars = 0;
 
 	do{
-        //printf("looping in var_declaration | token is %d\n", tok.t);
         tok = advance(tok);
-        //printf("advancing... | token is %d\n", tok.t);
         if (tok.t != identsym){
-            //printf("tok not identsym, exiting with error\n");
             error(4);
         }
 
         num_vars++;
+
+        //add variable to symbol table
         put_symbol(2, tok.val.identifier, 0, 0, (3 + num_vars));
         tok = advance(tok);
 
@@ -200,6 +196,10 @@ aToken_type proc_declaration(aToken_type tok){
 		if(tok.t != identsym){
 			error(4);
 		}
+
+		//add procedure to symbol table
+        put_symbol(3, tok.val.identifier, 0, 0, 0);
+
 		tok = advance(tok);
 
 		if(tok.t != semicolonsym){

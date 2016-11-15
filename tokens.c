@@ -46,8 +46,6 @@ bool addToken(aToken_type* t){
         lexCtr = 0;
     }
 
-    //printf("lexCtr = %d\n", lexCtr);
-
     //add the token to the array
     token_type n = t->t;
     tokArr[lexCtr].t = n;
@@ -60,10 +58,8 @@ bool addToken(aToken_type* t){
     else if(n == 3){
         tokArr[lexCtr].val.number = t->val.number;
     }
-    //printf("copied t to array\n", lexCtr);
 
     lexCtr++;
-    //printf("lexCtr after increment = %d\n", lexCtr);
 
     return true;
 }
@@ -126,6 +122,7 @@ void  displayToken(aToken_type t){
 
     printf("%d ", t.t);
 
+    //display token string or int value
     if(t.t == 2){
         printf("%s ", t.val.identifier);
     }else if(t.t == 3){

@@ -115,7 +115,7 @@ bool error(int errnum){
             print("'write' must be followed by an identifier.");
             break;
         default:
-            print("wooooo mystery error (try a number 1-26)");
+            print("wooooo mystery error (try a number 1-28)");
             break;
     }
     exit(1);
