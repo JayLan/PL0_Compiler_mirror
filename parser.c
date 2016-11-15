@@ -77,7 +77,7 @@ aToken_type advance(aToken_type tok){
 void program(aToken_type tok){
 
     //consume first token
-    advance(tok);8
+    advance(tok);
 
 	tok = block(tok);
 
@@ -345,6 +345,7 @@ aToken_type statement(aToken_type tok){
 
         tok = factor(tok);
         return tok;
+    }
 }
 
 // Processes a condition
