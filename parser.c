@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "tokens.h"
 #include "error.h"
 #include "lexer.h"
@@ -55,12 +56,11 @@ int symbol_address(int symbol_pos);
 void emit (int op, int l, int m);
 void print_pm0(FILE* outFile);
 
-/*THIS IS THE GLOBAL TOKEN STORAGE AVAILABLE TO ALL PARSER FUNCTIONS*/
-
-aToken_type tokArray [TOKEN_ARRAY_SIZE];
+/*SYMBOL  TABLE and PM0 CODE ARRAY AVAIL TO ALL PARSER FUNCTIONS*/
 symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
 instruction codeArray [MAX_CODE_LENGTH];
-//static int lexCtr = 0;
+
+/* Global counters */
 static int cx = 0;
 static int symctr = 0;
 
