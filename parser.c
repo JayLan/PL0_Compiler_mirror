@@ -37,8 +37,8 @@ typedef struct symbol {
 
 void program(aToken_type tok);
 aToken_type block(aToken_type tok, int level);
-aToken_type const_declaration(aToken_type tok);
-aToken_type var_declaration(aToken_type tok);
+aToken_type const_declaration(aToken_type tok, int level);
+aToken_type var_declaration(aToken_type tok, int level);
 aToken_type proc_declaration(aToken_type tok, int level);
 aToken_type statement(aToken_type tok);
 aToken_type condition(aToken_type tok);
@@ -79,7 +79,7 @@ void program(aToken_type tok){
     //consume first token
     advance(tok);
 
-	tok = block(tok, 0);
+	tok = block(tok, 1);
 
 	if(tok.t != periodsym){
 		error(9);
@@ -95,8 +95,8 @@ void program(aToken_type tok){
 aToken_type block(aToken_type tok, int l){
 
     //printf("block function | token is %d\n", tok.t);
-    tok = const_declaration(tok);
-    tok = var_declaration(tok);
+    tok = const_declaration(tok, l);
+    tok = var_declaration(tok, l);
     tok = proc_declaration(tok, l);
     tok = statement(tok);
 
@@ -104,7 +104,7 @@ aToken_type block(aToken_type tok, int l){
 }
 
 // Handles declarations of constants
-aToken_type const_declaration(aToken_type tok){
+aToken_type const_declaration(aToken_type tok, int l){
 
     //printf("const_declaration function | token is %d\n", tok.t);
 
@@ -131,7 +131,7 @@ aToken_type const_declaration(aToken_type tok){
 		}
 
 		//add constant to symbol table
-		put_symbol(1, id, tok.t, 0, 0);
+		put_symbol(1, id, tok.t, l, 0);
 
 		tok = advance(tok);
 
@@ -148,7 +148,7 @@ aToken_type const_declaration(aToken_type tok){
 }
 
 // Handles declarations of variables
-aToken_type var_declaration(aToken_type tok){
+aToken_type var_declaration(aToken_type tok, int l){
 
     //printf("var_declaration function | token is %d\n", tok.t);
 
@@ -167,7 +167,7 @@ aToken_type var_declaration(aToken_type tok){
         num_vars++;
 
         //add variable to symbol table
-        put_symbol(2, tok.val.identifier, 0, 0, (3 + num_vars));
+        put_symbol(2, tok.val.identifier, 0, l, (3 + num_vars));
         tok = advance(tok);
 
 	}while(tok.t == commasym);
@@ -227,6 +227,16 @@ aToken_type statement(aToken_type tok){
     int ctemp, cx1, cx2;
 
     if(tok.t == identsym){
+
+        //check to make sure ident is a valid variable store in symbol table
+        int symbol_pos = find_symbol(tok.val.identifier);
+        if (symbol_pos == -1){
+            printf("tok t=%d, %s", tok.t, tok.val.identifier);
+            error(11);
+        } else if (symbol_kind(symbol_pos) != 2){
+            error(12);
+        }
+
         tok = advance (tok);
 
         if(tok.t != becomessym && tok.t != semicolonsym){
@@ -236,6 +246,8 @@ aToken_type statement(aToken_type tok){
 
         tok = advance(tok);
         tok = expression(tok);
+
+        emit(STO, symbol_level(symbol_pos), symbol_address(symbol_pos));
 
         return tok;
     }
@@ -275,7 +287,6 @@ aToken_type statement(aToken_type tok){
     }
 
     if(tok.t == ifsym){
-        printf("found an ifsym\n");
         tok = advance(tok);
         tok = condition(tok);
 
@@ -294,7 +305,6 @@ aToken_type statement(aToken_type tok){
     }
 
     if(tok.t == whilesym){
-        printf("found an whilesym\n");
         cx1 = cx;
         tok = advance(tok);
         tok = condition(tok);
@@ -513,7 +523,7 @@ int find_symbol(char* identstr){
             return i;
         }
     }
-    return 0;
+    return -1;
 }
 
 int symbol_kind(int symbol_pos){
