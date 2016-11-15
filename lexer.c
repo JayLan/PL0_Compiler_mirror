@@ -49,9 +49,11 @@ void readnextc(FILE* f, char* buff);
 
 int do_lex(FILE* cleanFile){
 
+    /*print tokens to stdout
     printf("\n");
     printf("tokens:\n");
     printf("-------\n");
+    */
 
     while(true){
         //Get the tokens from the clean file.
@@ -60,16 +62,12 @@ int do_lex(FILE* cleanFile){
         //this is where we will send the token to tokArr in tokens.h
         addToken(toke);
 
-        //printf("do_lex: toke->t = %d\n", toke->t);
-
         // halt if nullsym is returned
         if ( toke->t == 1 ){
-            //printf("do_lex: breaking after nullsym found\n", toke->t);
             break;
         }
 
         //Display the appropriate token, then free it
-        //displayToken(toke); --token will be displayed in by the parser or driver
         freeToken(toke);
     }
 
@@ -82,7 +80,7 @@ int do_lex(FILE* cleanFile){
 // Takes in an integer identifying what kind of error is found.
 // Displays the appropriate error to the user
 void displayError(int code, int var){
-
+    printf("LEX ERROR #%d: ", code);
     switch(code){
         case(1):
 
@@ -187,10 +185,10 @@ void displaySourceFile(FILE* ifp){
     // Display file content.
     while(true){
         c = fgetc(ifp);
-        
+
         if (!feof(ifp)){
             printf("%c", c);
-            
+
         }else{
             break;
         }

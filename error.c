@@ -28,7 +28,7 @@ void print(char* message){
 }
 
 bool error(int errnum){
-    printf("\nERROR %d: ", errnum);
+    printf("\nPARSE ERROR %d: ", errnum);
     switch (errnum){
         case 1:
             print("Use = instead of :=");

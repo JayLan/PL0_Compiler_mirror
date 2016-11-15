@@ -39,7 +39,7 @@ void program(aToken_type tok);
 aToken_type block(aToken_type tok, int level);
 aToken_type const_declaration(aToken_type tok, int level);
 aToken_type var_declaration(aToken_type tok, int level);
-aToken_type proc_declaration(aToken_type tok, int level);
+//aToken_type proc_declaration(aToken_type tok, int level);
 aToken_type statement(aToken_type tok);
 aToken_type condition(aToken_type tok);
 aToken_type expression(aToken_type tok);
@@ -97,7 +97,7 @@ aToken_type block(aToken_type tok, int l){
     //printf("block function | token is %d\n", tok.t);
     tok = const_declaration(tok, l);
     tok = var_declaration(tok, l);
-    tok = proc_declaration(tok, l);
+    //tok = proc_declaration(tok, l);
     tok = statement(tok);
 
 	return tok;
@@ -182,6 +182,7 @@ aToken_type var_declaration(aToken_type tok, int l){
 	return tok;
 }
 
+/*
 // Processes the process declaration
 aToken_type proc_declaration(aToken_type tok, int l){
 
@@ -220,6 +221,7 @@ aToken_type proc_declaration(aToken_type tok, int l){
 
     return tok;
 }
+*/
 
 // Addresses multiple declared statements
 aToken_type statement(aToken_type tok){
@@ -228,14 +230,8 @@ aToken_type statement(aToken_type tok){
 
     if(tok.t == identsym){
 
-        //check to make sure ident is a valid variable store in symbol table
-        int symbol_pos = find_symbol(tok.val.identifier);
-        if (symbol_pos == -1){
-            printf("tok t=%d, %s", tok.t, tok.val.identifier);
-            error(11);
-        } else if (symbol_kind(symbol_pos) != 2){
-            error(12);
-        }
+        //check to make sure ident is a valid variable symbol stored in symbol table
+        int sym_pos = find_valid_symbol_kind(tok.val.identifier, 2);
 
         tok = advance (tok);
 
@@ -247,7 +243,7 @@ aToken_type statement(aToken_type tok){
         tok = advance(tok);
         tok = expression(tok);
 
-        emit(STO, symbol_level(symbol_pos), symbol_address(symbol_pos));
+        emit(STO, symbol_level(sym_pos), symbol_address(sym_pos));
 
         return tok;
     }
@@ -334,6 +330,9 @@ aToken_type statement(aToken_type tok){
             error(27);
         }
 
+        //check to make sure ident is a valid variable symbol stored in symbol table
+        int sym_pos = find_valid_symbol_kind(tok.val.identifier, 2);
+
         tok = advance(tok);
 
         if (tok.t != semicolonsym){
@@ -352,6 +351,9 @@ aToken_type statement(aToken_type tok){
         if (tok.t != identsym){
             error(28);
         }
+
+        //check to make sure ident is a valid variable symbol stored in symbol table
+        int sym_pos = find_valid_symbol_kind(tok.val.identifier, 2);
 
         tok = advance(tok);
 
@@ -474,6 +476,8 @@ aToken_type term(aToken_type tok){
 aToken_type factor(aToken_type tok){
 
 		if (tok.t == identsym){
+            //check to make sure ident is a valid variable symbol stored in symbol table
+            int sym_pos = find_valid_symbol_kind(tok.val.identifier, -1);
             tok = advance(tok);
             emit(LOD, 0, 4);
 		}else if(tok.t == numbersym){
@@ -538,6 +542,19 @@ int symbol_address(int symbol_pos){
     return symbol_table[symbol_pos].addr;
 }
 
+//takes an ident string and an expected kind (-1 for any)
+//returns position in symbol table or throws error if not found
+int find_valid_symbol_kind(char* identstr, int kind){
+    //check to make sure ident is a valid variable stored in symbol table
+        int symbol_pos = find_symbol(identstr);
+        if (symbol_pos == -1){
+            error(11);
+        } else if (kind != -1 && symbol_kind(symbol_pos) != kind){
+            error(12);
+        }
+        return symbol_pos;
+}
+
 void emit(int op, int l, int m){
     if(cx > MAX_CODE_LENGTH){
         error(26);
@@ -553,7 +570,7 @@ void print_pm0(FILE* outFile){
     int i;
 
     for(i = 0; i < cx; i++){
-        printf("%d %d %d\n", (codeArray[i]).op, (codeArray[i]).l, (codeArray[i]).m);
+        //printf("%d %d %d\n", (codeArray[i]).op, (codeArray[i]).l, (codeArray[i]).m);
         fprintf(outFile, "%d %d %d\n", (codeArray[i]).op, (codeArray[i]).l, (codeArray[i]).m);
     }
 }
