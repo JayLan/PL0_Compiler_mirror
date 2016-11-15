@@ -79,7 +79,7 @@ bool error(int errnum){
             print("'then' expected.");
             break;
         case 17:
-            print("Semicolon or 'end' expected");
+            print("'end' expected");
             break;
         case 18:
             print("'do' expected.");

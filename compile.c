@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     }
 
     // remove the following line for command line execution
-    argv[1] = "tester2.pl0";
+    argv[1] = "proc.pl0";
 
     source = fopen(argv[1], "r"); //replace filename with argv[1] for command line testing
     clean = fopen("clean.pl0", "w");

@@ -36,10 +36,10 @@ typedef struct symbol {
 } symbol;
 
 void program(aToken_type tok);
-aToken_type block(aToken_type tok);
+aToken_type block(aToken_type tok, int level);
 aToken_type const_declaration(aToken_type tok);
 aToken_type var_declaration(aToken_type tok);
-aToken_type proc_declaration(aToken_type tok);
+aToken_type proc_declaration(aToken_type tok, int level);
 aToken_type statement(aToken_type tok);
 aToken_type condition(aToken_type tok);
 aToken_type expression(aToken_type tok);
@@ -79,7 +79,7 @@ void program(aToken_type tok){
     //consume first token
     advance(tok);
 
-	tok = block(tok);
+	tok = block(tok, 0);
 
 	if(tok.t != periodsym){
 		error(9);
@@ -92,12 +92,12 @@ void program(aToken_type tok){
 }
 
 // Processes code block declarations
-aToken_type block(aToken_type tok){
+aToken_type block(aToken_type tok, int l){
 
     //printf("block function | token is %d\n", tok.t);
     tok = const_declaration(tok);
     tok = var_declaration(tok);
-    tok = proc_declaration(tok);
+    tok = proc_declaration(tok, l);
     tok = statement(tok);
 
 	return tok;
@@ -111,7 +111,6 @@ aToken_type const_declaration(aToken_type tok){
 	if(tok.t != constsym){
 		return tok;
 	}
-
 
 	do {
         tok = advance(tok);
@@ -184,7 +183,7 @@ aToken_type var_declaration(aToken_type tok){
 }
 
 // Processes the process declaration
-aToken_type proc_declaration(aToken_type tok){
+aToken_type proc_declaration(aToken_type tok, int l){
 
 	if(tok.t != procsym){
 		return tok;
@@ -198,20 +197,25 @@ aToken_type proc_declaration(aToken_type tok){
 		}
 
 		//add procedure to symbol table
-        put_symbol(3, tok.val.identifier, 0, 0, 0);
+        put_symbol(3, tok.val.identifier, 0, l, 0);
 
 		tok = advance(tok);
 
 		if(tok.t != semicolonsym){
 			error(5);
 		}
+
 		tok = advance(tok);
-		tok = block(tok);
+
+		tok = block(tok, l+1);
 
 		if(tok.t != semicolonsym){
 			error(5);
 		}
+
 		tok = advance(tok);
+		//**
+
 	}
 
     return tok;
@@ -226,6 +230,7 @@ aToken_type statement(aToken_type tok){
         tok = advance (tok);
 
         if(tok.t != becomessym && tok.t != semicolonsym){
+            //printf("token = %d\n", tok.t);
             error(3);
         }
 
@@ -246,7 +251,6 @@ aToken_type statement(aToken_type tok){
     }
 
     if(tok.t == beginsym){
-
         tok = advance(tok);
         tok = statement(tok);
         emit(STO, 0, 4);
@@ -260,7 +264,7 @@ aToken_type statement(aToken_type tok){
         tok = statement(tok);
 
         if(tok.t != endsym){
-            error(17);
+            error(17); //**proc example stops here, on line 10 of pl0 code
         }
 
         tok = advance(tok);
@@ -271,6 +275,7 @@ aToken_type statement(aToken_type tok){
     }
 
     if(tok.t == ifsym){
+        printf("found an ifsym\n");
         tok = advance(tok);
         tok = condition(tok);
 
@@ -289,6 +294,7 @@ aToken_type statement(aToken_type tok){
     }
 
     if(tok.t == whilesym){
+        printf("found an whilesym\n");
         cx1 = cx;
         tok = advance(tok);
         tok = condition(tok);
