@@ -21,7 +21,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void displaySourceFile(FILE* ifp);
-int  removeComments (FILE* infile, FILE* cleanFile);
-void freeToken(aToken_type* t);
+int do_lex(FILE* clean);
 aToken_type* getNextToken(FILE* cleanFile);
+int  removeComments (FILE* infile, FILE* cleanFile);
+void displayError(int code, int var);
+void displaySourceFile(FILE* ifp);
+void freeToken(aToken_type* t);

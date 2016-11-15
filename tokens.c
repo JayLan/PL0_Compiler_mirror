@@ -51,10 +51,10 @@ bool addToken(aToken_type* t){
     //add the token to the array
     token_type n = t->t;
     tokArr[lexCtr].t = n;
-    
+
     //add string ident or value if needed
     if(n ==2 ){
-        tokArr[lexCtr].val.identifier = malloc(sizeof(char) * IDENT_MAX_LENGTH);
+        tokArr[lexCtr].val.identifier = malloc(sizeof(char) * MAX_IDENT_LENGTH);
         strcpy( tokArr[lexCtr].val.identifier, t->val.identifier );
     }
     else if(n == 3){
@@ -81,7 +81,7 @@ aToken_type nextToken(){
 
 aToken_type rewindParseTokens(){
     parseCtr = 0;
-    
+
     return tokArr[parseCtr];
 }
 

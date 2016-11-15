@@ -19,13 +19,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "tokens.h"
 #include "error.h"
 #include "lexer.h"
 #include "vm.h"
 
 #define MAX_SYMBOL_TABLE_SIZE 100
-#define MAX_IDENT_LENGTH 12
 
 typedef struct symbol {
 	int kind; // const = 1, var = 2, proc = 3
@@ -56,12 +56,11 @@ int symbol_address(int symbol_pos);
 void emit (int op, int l, int m);
 void print_pm0(FILE* outFile);
 
-/*THIS IS THE GLOBAL TOKEN STORAGE AVAILABLE TO ALL PARSER FUNCTIONS*/
-
-aToken_type tokArray [TOKEN_ARRAY_SIZE];
+/*SYMBOL  TABLE and PM0 CODE ARRAY AVAIL TO ALL PARSER FUNCTIONS*/
 symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
 instruction codeArray [MAX_CODE_LENGTH];
-//static int lexCtr = 0;
+
+/* Global counters */
 static int cx = 0;
 static int symctr = 0;
 
@@ -85,7 +84,6 @@ void program(aToken_type tok){
 
 	if(tok.t != periodsym){
 		error(9);
-		exit(1);
 	}
 
 	emit(SIO, 0, 2);
@@ -523,6 +521,15 @@ void print_pm0(FILE* outFile){
     for(i = 0; i < cx; i++){
         printf("%d %d %d\n", (codeArray[i]).op, (codeArray[i]).l, (codeArray[i]).m);
         fprintf(outFile, "%d %d %d\n", (codeArray[i]).op, (codeArray[i]).l, (codeArray[i]).m);
+    }
+}
+
+void print_symboltable(){
+    printf("ROW\tKIND\tNAME\tVAL\tL\tM\n---------------------------------------------\n");
+    int i;
+    for (i=0; i < symctr; i++){
+        symbol s = symbol_table[i];
+        printf("%d\t%d\t%s\t%d\t%d\t%d\n", i, s.kind, s.name, s.val, s.level, s.addr);
     }
 
 }
