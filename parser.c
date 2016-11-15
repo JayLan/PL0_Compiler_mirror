@@ -25,7 +25,6 @@
 #include "vm.h"
 
 #define MAX_SYMBOL_TABLE_SIZE 100
-#define MAX_IDENT_LENGTH 12
 
 typedef struct symbol {
 	int kind; // const = 1, var = 2, proc = 3
@@ -521,6 +520,15 @@ void print_pm0(FILE* outFile){
     for(i = 0; i < cx; i++){
         printf("%d %d %d\n", (codeArray[i]).op, (codeArray[i]).l, (codeArray[i]).m);
         fprintf(outFile, "%d %d %d\n", (codeArray[i]).op, (codeArray[i]).l, (codeArray[i]).m);
+    }
+}
+
+void print_symboltable(){
+    printf("ROW\tKIND\tNAME\tVAL\tL\tM\n---------------------------------------------\n");
+    int i;
+    for (i=0; i < symctr; i++){
+        symbol s = symbol_table[i];
+        printf("%d\t%d\t%s\t%d\t%d\t%d\n", i, s.kind, s.name, s.val, s.level, s.addr);
     }
 
 }

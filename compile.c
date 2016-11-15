@@ -82,8 +82,7 @@ int main(int argc, char* argv[]) {
         if(tok.t == 1)
             break;
 
-        // Displays the appropriate token, then free it
-        // printf("token: ");
+        // Displays the appropriate token
         displayToken(tok);
 
     }
@@ -92,21 +91,24 @@ int main(int argc, char* argv[]) {
 
     // Back to the beginning
     tok = rewindParseTokens();
-    // printf("tok = ");
 
     // runs the parser & code generator
     program(tok);
 
-    printf("\n");
+    //prints the symbol table
+    printf("\n-------------------SYMBOLS-------------------\n");
+    print_symboltable();
 
     // Close the cleanFile pointer
     fclose(clean);
 
+    //Open write file for PM0 code
     FILE* codeFile = fopen(argv[2], "w+");
 
+    //print to stdout and codeFile
     printf("\n\nPM0 output:\n------\n");
     print_pm0(codeFile);
-    
+
 }
 
 
