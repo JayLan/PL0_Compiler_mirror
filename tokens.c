@@ -39,8 +39,9 @@ extern int lexCtr;
 extern int parseCtr;
 
 bool addToken(aToken_type* t){
+
     //initialize tokCtr if necessary
-    if (tokArr == NULL){
+    if(tokArr == NULL){
         tokArr = malloc(sizeof(aToken_type)*TOKEN_ARRAY_SIZE);
         lexCtr = 0;
     }
@@ -50,12 +51,13 @@ bool addToken(aToken_type* t){
     //add the token to the array
     token_type n = t->t;
     tokArr[lexCtr].t = n;
+    
     //add string ident or value if needed
-    if (n ==2 ){
+    if(n ==2 ){
         tokArr[lexCtr].val.identifier = malloc(sizeof(char) * IDENT_MAX_LENGTH);
         strcpy( tokArr[lexCtr].val.identifier, t->val.identifier );
     }
-    else if (n == 3){
+    else if(n == 3){
         tokArr[lexCtr].val.number = t->val.number;
     }
     //printf("copied t to array\n", lexCtr);
@@ -68,7 +70,7 @@ bool addToken(aToken_type* t){
 
 aToken_type nextToken(){
     //initialize tokCtr if necessary
-    if (parseCtr == NULL){
+    if(parseCtr == NULL){
         //printf("initializing parseCtr = 0\n");
         parseCtr = 0;
     }
@@ -79,6 +81,7 @@ aToken_type nextToken(){
 
 aToken_type rewindParseTokens(){
     parseCtr = 0;
+    
     return tokArr[parseCtr];
 }
 
@@ -123,12 +126,9 @@ void  displayToken(aToken_type t){
 
     printf("%d ", t.t);
 
-    if(t.t == 2)
-    {
+    if(t.t == 2){
         printf("%s ", t.val.identifier);
-    }
-    else if(t.t == 3)
-    {
+    }else if(t.t == 3){
         printf("%d ", t.val.number);
     }
 

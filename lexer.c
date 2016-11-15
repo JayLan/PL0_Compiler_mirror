@@ -28,32 +28,6 @@
 #define DFA_MATRIX_NUMBER_STATES  76
 #define DEAD_STATE                75
 
-/*typedef enum token {
-    nulsym = 1, identsym, numbersym, plussym, minussym,
-    multsym, slashsym, oddsym, eqsym, neqsym, lessym, leqsym,
-    gtrsym, geqsym, lparentsym, rparentsym, commasym, semicolonsym,
-    periodsym, becomessym, beginsym, endsym, ifsym, thensym,
-    whilesym, dosym, callsym, constsym, varsym, procsym, writesym,
-    readsym , elsesym
-} token_type;
-
-
-//Token_Value can be either an integer or a string
-union token_value
-{
-    int   number;
-    char* identifier;
-
-};
-
-//aToken_Type stores the kind of value, and the actual token.
-typedef struct
-{
-    union token_value val;
-    token_type  t;
-
-} aToken_type;
-*/
 struct Options {
     bool show_source;
     bool show_clean;
@@ -73,60 +47,13 @@ void displaySourceFile(FILE* ifp);
 void freeToken(aToken_type* t);
 void readnextc(FILE* f, char* buff);
 
-
-/*
-int main(int argc, char* argv[])
-{
-    //Allocates memory for the flags and sends them to setOptions:
-    struct Options* optns = malloc(sizeof(struct Options));
-    setOptions(argc, argv, optns);
-
-    //Declare and Initialize File Pointers
-    FILE* rawFile;
-    FILE* cleanFile;
-
-    rawFile = fopen(optns->filename, "rb+");
-    cleanFile = fopen("clean.pl0", "wb+");
-*/
-    /* display original code, if desired */
-    /*if(optns->show_source == true)
-    {
-        printf("\n");
-        printf("source code:\n");
-        printf("------------\n");
-        displaySourceFile(rawFile);
-    }
-
-    removeComments(rawFile, cleanFile);
-
-    fclose(rawFile);
-    fclose(cleanFile);
-*/
-    //Remove Comments from the original source file,
-    //then close both file pointers:
-
-    //Re-initialize the clean file pointer:
-    //cleanFile = fopen("clean.pl0", "rb+");
-
-    /* display comment-free code, if desired */
-    /*if(optns->show_clean == true)
-    {
-        printf("\n");
-        printf("source code without comments:\n");
-        printf("-----------------------------\n");
-        displaySourceFile(cleanFile);
-    }
-*/
-
-
 int do_lex(FILE* cleanFile){
 
     printf("\n");
     printf("tokens:\n");
     printf("-------\n");
 
-    while(true)
-    {
+    while(true){
         //Get the tokens from the clean file.
         aToken_type* toke = getNextToken(cleanFile);
 
@@ -152,13 +79,11 @@ int do_lex(FILE* cleanFile){
 
 } // End main
 
-//Takes in an integer identifying what kind of error is found.
-//Displays the appropriate error to the user
-void displayError(int code, int var)
-{
+// Takes in an integer identifying what kind of error is found.
+// Displays the appropriate error to the user
+void displayError(int code, int var){
 
-    switch(code)
-    {
+    switch(code){
         case(1):
 
             printf("DFA: finished in dead state\n");
@@ -203,13 +128,11 @@ void displayError(int code, int var)
 
         case(10):
 
-            // this error message required by assignment specs
             printf("Identifier cannot start with a number\n");
             break;
 
         case(11):
 
-            // this error message required by assignment specs
             printf("Invalid token\n");
             break;
 
@@ -255,8 +178,7 @@ void displaySourceFile(FILE* ifp){
 
     //Check to make sure File Pointer is not NULL.
     //If NULL then display the error and return from function.
-    if (ifp == NULL)
-    {
+    if(ifp == NULL){
         //displayError(12, 0);
         return;
     }
@@ -265,12 +187,11 @@ void displaySourceFile(FILE* ifp){
     // Display file content.
     while(true){
         c = fgetc(ifp);
-        if (!feof(ifp))
-        {
+        
+        if (!feof(ifp)){
             printf("%c", c);
-        }
-        else
-        {
+            
+        }else{
             break;
         }
     }
@@ -280,18 +201,11 @@ void displaySourceFile(FILE* ifp){
 
 } // END display source file
 
-//Takes in a valid aToken_type pointer t that contains the kind of token.
-
-
-
 //Frees the memory taken up by aToken_type pointer t
-void  freeToken(aToken_type* t)
-{
+void  freeToken(aToken_type* t){
 
-    if(t != NULL)
-    {
-        if(t->t == 2)
-        {
+    if(t != NULL){
+        if(t->t == 2){
             free(t->val.identifier);
         }
 
@@ -303,83 +217,65 @@ void  freeToken(aToken_type* t)
 } // END free token
 
 
-int getDFAcolumnNumber(char c)
-{
+int getDFAcolumnNumber(char c){
 
     int DFAcolumnNumber = 0;
 
     // A-Z
-    if( (c >= 65) && (c <= 90) )
-    {
+    if( (c >= 65) && (c <= 90) ){
         DFAcolumnNumber = c - 'A' + 0;
     }
     // a-Z
-    else if( (c >= 97) && (c <= 122) )
-    {
+    else if( (c >= 97) && (c <= 122) ){
         DFAcolumnNumber = c - 'a' + 26;
     }
     // 0-9
-    else if( (c >= 48) && (c <= 57) )
-    {
+    else if( (c >= 48) && (c <= 57) ){
         DFAcolumnNumber = c - '0' + 52;
     }
     // lastly, legal characters...
-    else if( c == '+' )
-    {
+    else if( c == '+' ){
         DFAcolumnNumber = 62;
     }
-    else if( c == '-' )
-    {
+    else if( c == '-' ){
         DFAcolumnNumber = 63;
     }
-    else if( c == '*' )
-    {
+    else if( c == '*' ){
         DFAcolumnNumber = 64;
     }
-    else if( c == '/' )
-    {
+    else if( c == '/' ){
         DFAcolumnNumber = 65;
     }
-    else if( c == '=' )
-    {
+    else if( c == '=' ){
         DFAcolumnNumber = 66;
     }
-    else if( c == '<' )
-    {
+    else if( c == '<' ){
         DFAcolumnNumber = 67;
     }
-    else if( c == '>' )
-    {
+    else if( c == '>' ){
         DFAcolumnNumber = 68;
     }
-    else if( c == ':' )
-    {
+    else if( c == ':' ){
         DFAcolumnNumber = 69;
     }
-    else if( c == ';' )
-    {
+    else if( c == ';' ){
         DFAcolumnNumber = 70;
     }
-    else if( c == ',' )
-    {
+    else if( c == ',' ){
         DFAcolumnNumber = 71;
     }
-    else if( c == '.' )
-    {
+    else if( c == '.' ){
         DFAcolumnNumber = 72;
     }
-    else if( c == '(' )
-    {
+    else if( c == '(' ){
         DFAcolumnNumber = 73;
     }
-    else if( c == ')' )
-    {
+    else if( c == ')' ){
         DFAcolumnNumber = 74;
     }
 
     // else fail invlaid input charater
-    else
-    {
+    else{
         displayError(8, c);
     }
 
@@ -389,8 +285,7 @@ int getDFAcolumnNumber(char c)
 
 
 //  returns next token starting at current position of file pointer
-aToken_type* getNextToken(FILE* cleanFile)
-{
+aToken_type* getNextToken(FILE* cleanFile){
 
     bool moveFilePointerOneBack = true;
 
@@ -409,43 +304,37 @@ aToken_type* getNextToken(FILE* cleanFile)
     aToken_type* t = (aToken_type*)malloc(sizeof(aToken_type));
 
     // return nullsym token on eof
-    if (feof(cleanFile))
-    {
+    if (feof(cleanFile)){
         t->t = 1;
         t->t = 1;
         return t;
     }
 
-    while(true)
-    {
+    while(true){
         moveFilePointerOneBack = true;
 
         fscanf(cleanFile, "%c", &c);
 
-        if( feof(cleanFile) )
-        {
+        if( feof(cleanFile) ){
             moveFilePointerOneBack = false;
             break;
         }
 
         /* loop (if on first char of lexeme) until a non-ignored character is read in (break for EOF  */
         /*                          tab         cr           lf          space                        */
-        while( (length == 0) && ((c == 9) || (c == 13) || (c == 10) || (c == 32)) && !feof(cleanFile) )
-        {
+        while( (length == 0) && ((c == 9) || (c == 13) || (c == 10) || (c == 32)) && !feof(cleanFile) ){
             fscanf(cleanFile, "%c", &c);
         }
 
         // handle eof-only lexeme
-        if(feof(cleanFile) && (length == 0))
-        {
+        if(feof(cleanFile) && (length == 0)){
             DFAstate = 0;
             break;
         }
 
         /* handle ignored characters following non-null lexeme               */
         /*                     tab         cr           lf          space    */
-        if( (length > 0) && ((c == 9) || (c == 13) || (c == 10) || (c == 32)) )
-        {
+        if( (length > 0) && ((c == 9) || (c == 13) || (c == 10) || (c == 32)) ){
             moveFilePointerOneBack = false;
             break;
         }
@@ -454,8 +343,7 @@ aToken_type* getNextToken(FILE* cleanFile)
         DFAcolumn = getDFAcolumnNumber(c);
 
         // stop/error on invalid column number ... BUT NOT EOF!!!
-        if( DFAcolumn > DFA_MATRIX_NUMBER_COLUMNS )
-        {
+        if( DFAcolumn > DFA_MATRIX_NUMBER_COLUMNS ){
             displayError(2,DFAcolumn);
             break;
         }
@@ -465,16 +353,14 @@ aToken_type* getNextToken(FILE* cleanFile)
         DFAstate = nextState(DFAstate, DFAcolumn);
 
         // check if (current) state is dead, previously was a number, and input was letter
-        if( (DFAstate == DEAD_STATE) && (DFAstate_prev == 2) && (DFAcolumn <= 51) )
-        {
+        if( (DFAstate == DEAD_STATE) && (DFAstate_prev == 2) && (DFAcolumn <= 51) ){
             DFAstate = 0; // signal halt to caller
             displayError(10, 0);
             break;
         }
 
         // check if (current) state is dead
-        if( DFAstate == DEAD_STATE )
-        {
+        if( DFAstate == DEAD_STATE ){
             // roll back state
             moveFilePointerOneBack = true;
             DFAstate = DFAstate_prev;
@@ -482,8 +368,7 @@ aToken_type* getNextToken(FILE* cleanFile)
         }
 
         // if we aren't dead, is this an identifier that's too long?
-        if( (length >= MAX_IDENTIFIER_LENGTH) && (DFAstate == 1) )
-        {
+        if( (length >= MAX_IDENTIFIER_LENGTH) && (DFAstate == 1) ){
             DFAstate = 0; // signal halt to caller
             displayError(3, 0);
             break;
@@ -497,14 +382,12 @@ aToken_type* getNextToken(FILE* cleanFile)
 
     lexeme[length] = '\0';
 
-    if( moveFilePointerOneBack )
-    {
+    if( moveFilePointerOneBack ){
         fseek(cleanFile, -1, SEEK_CUR);
     }
 
     // dead state
-    if( DFAstate == DEAD_STATE )
-    {
+    if( DFAstate == DEAD_STATE ){
         displayError(1,0);
         return t;
     }
@@ -513,10 +396,9 @@ aToken_type* getNextToken(FILE* cleanFile)
     tokenTypeOrdinal = stateToTokenTypeOrdinal(DFAstate);
     t->t = tokenTypeOrdinal;
 
-    switch(tokenTypeOrdinal)
-    {
+    switch(tokenTypeOrdinal){
 
-            // invalid token type, invalid character (e.g. ':' without '=', or '$', or '@', etc)
+        // invalid token type, invalid character (e.g. ':' without '=', or '$', or '@', etc)
         case(0):
 
             displayError(11, 0);
@@ -524,26 +406,24 @@ aToken_type* getNextToken(FILE* cleanFile)
             free(lexeme);
             break;
 
-            // identifier token -- lexeme must live
+        // identifier token -- lexeme must live
         case(2):
 
             t->val.identifier = lexeme;
             break;
 
-            // number token
+        // number token
         case(3):
 
             sscanf(lexeme, "%d", &i);
-            if ( (i > 32767) || (i < -32768) )
+            if( (i > 32767) || (i < -32768) )
             {
                 // display error and signal halt
                 t->t          = 1;
                 DFAstate      = 0;
                 displayError(4, i);
                 break;
-            }
-            else
-            {
+            }else{
                 t->val.number = i;
             }
 
@@ -563,17 +443,14 @@ aToken_type* getNextToken(FILE* cleanFile)
 } // END get next token
 
 
-int nextState(int currentState, int input)
-{
+int nextState(int currentState, int input){
 
-    if( (currentState <0) || (currentState >= DFA_MATRIX_NUMBER_STATES) )
-    {
+    if( (currentState <0) || (currentState >= DFA_MATRIX_NUMBER_STATES) ){
         displayError(5, currentState);
         return DEAD_STATE;
     }
 
-    if( (input < 0) || (input >= DFA_MATRIX_NUMBER_COLUMNS) )
-    {
+    if( (input < 0) || (input >= DFA_MATRIX_NUMBER_COLUMNS) ){
         displayError(6, input);
         return DEAD_STATE;
     }
@@ -671,7 +548,7 @@ void readnextc(FILE* f, char* buff){
 
     if(!feof(f)){
         buff[1] = c;
-    } else {
+    }else {
         buff[1] = ' ';
     }
 
@@ -721,55 +598,10 @@ int removeComments(FILE* inFile, FILE* cleanFile){
 
 }
 
-
-// setOptions: reads arguments from cmd line and sorts them into
-//             Options struct.  Returns 0 on success, 1 on failure.
-/*int setOptions(int argc, char* argv[], struct Options* optns){
-
-    //return 1 if too many args
-    if(argc > 4){
-        displayError(15, argc);
-        return 1;
-    }
-
-    //start with both flags off
-    optns->show_source = false;
-    optns->show_clean = false;
-    strcpy(optns->filename, "");
-
-    //read args
-    int i;
-    for(i=1; i<argc; ++i){
-
-        //If the argument is "--source", set show_source to true.
-        if(strcmp(argv[i], "--source") == 0){
-            optns->show_source = true;
-        }
-
-        //If argument is "--clean" set show_source to true
-        else if(strcmp(argv[i], "--clean") == 0){
-            optns->show_clean =  true;;
-        }
-        //only allow one non-flag arg
-        else if(strcmp(optns->filename, "") == 0){
-            strcpy(optns->filename, argv[i]);
-        }
-        else{
-            displayError(16, 0);
-            return true;
-        }
-    }
-    return false;
-
-} // END set options
-
-*/
 // will return 0 on invalid character
-int stateToTokenTypeOrdinal(int s)
-{
+int stateToTokenTypeOrdinal(int s){
 
-    if( (s < 0 ) || ( s >= DFA_MATRIX_NUMBER_STATES) )
-    {
+    if( (s < 0 ) || ( s >= DFA_MATRIX_NUMBER_STATES) ){
         displayError(7, s);
         return 0;
     }
