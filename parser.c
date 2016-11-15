@@ -266,8 +266,8 @@ aToken_type statement(aToken_type tok){
         }
 
         tok = advance(tok);
-
         emit(STO, 0, 4);
+        
         return tok;
 
     }
@@ -315,6 +315,7 @@ aToken_type statement(aToken_type tok){
         tok = advance(tok);
         emit(SIO, 0, 1);
         tok = statement(tok);
+        
         return tok;
     }
 
@@ -322,6 +323,7 @@ aToken_type statement(aToken_type tok){
         tok = advance(tok);
         emit(SIO, 0, 0);
         tok = factor(tok);
+        
         return tok;
     }else{
         return tok;
