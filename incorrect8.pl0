@@ -1,0 +1,7 @@
+var a, b;
+begin 
+	if a > 1 then
+	begin
+		a := b
+	end
+/* missing end */

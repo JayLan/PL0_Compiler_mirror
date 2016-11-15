@@ -1,0 +1,5 @@
+var a, b;
+begin 
+	if c > 1 then /*c was not declared in variable declaration section*/
+		a := b
+end.

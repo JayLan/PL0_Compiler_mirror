@@ -1,6 +1,6 @@
 BEGIN
 
-	var foo := 66536; /* exceeds allowable amount */
+	var foo := 66536; /* Number out of range (>32767) */
 	var r := foo;
 
 end.

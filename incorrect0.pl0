@@ -3,9 +3,9 @@ BEGIN
   q := 0;
   w := y;
   
-WHILE w > y DO BEGIN
-    q := 2 * q;
-    w =: w / 2; /* switched assignment operator order */
-end.
-    
-/* this is missing last END */
+WHILE w > y DO 
+	BEGIN
+	    q := 2 * q;
+	    w =: w / 2; /* =: is an invalid token */
+	end
+END.

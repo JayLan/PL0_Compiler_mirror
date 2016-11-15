@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
     }
 
     // remove the following line for command line execution
-    argv[1] = "incorrect8.pl0";
+    argv[1] = "incorrect9.pl0";
 
     //open source file and writable clean file
     source = fopen(argv[1], "r");
