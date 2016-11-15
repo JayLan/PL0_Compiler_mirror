@@ -106,7 +106,7 @@ bool error(int errnum){
             print("This number is too large.");
             break;
         case 26:
-            print("This number is too large.");
+            print("The code is too long.");
             break;
         default:
             print("wooooo mystery error (try a number 1-26)");

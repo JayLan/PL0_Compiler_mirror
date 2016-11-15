@@ -311,23 +311,40 @@ aToken_type statement(aToken_type tok){
 
     if(tok.t == readsym){
         tok = advance(tok);
-        emit(SIO, 0, 1);
-        tok = statement(tok);
 
+        emit(SIO, 0, 1);
+
+        if (tok.t != identsym){
+            error(0);
+        }
+
+        tok = advance(tok);
+
+        if (tok.t != semicolonsym){
+            error(0);
+        }
+
+        tok = statement(tok);
         return tok;
     }
 
     if(tok.t == writesym){
         tok = advance(tok);
+
         emit(SIO, 0, 0);
+
+        if (tok.t != identsym){
+            error(0);
+        }
+
+        tok = advance(tok);
+
+        if (tok.t != semicolonsym){
+            error(0);
+        }
+
         tok = factor(tok);
-
         return tok;
-    }else{
-        return tok;
-    }
-
-    return tok;
 }
 
 // Processes a condition
