@@ -108,6 +108,12 @@ bool error(int errnum){
         case 26:
             print("The code is too long.");
             break;
+        case 27:
+            print("'read' must be followed by an identifier.");
+            break;
+        case 28:
+            print("'write' must be followed by an identifier.");
+            break;
         default:
             print("wooooo mystery error (try a number 1-26)");
             break;

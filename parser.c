@@ -315,13 +315,13 @@ aToken_type statement(aToken_type tok){
         emit(SIO, 0, 1);
 
         if (tok.t != identsym){
-            error(0);
+            error(27);
         }
 
         tok = advance(tok);
 
         if (tok.t != semicolonsym){
-            error(0);
+            error(10);
         }
 
         tok = statement(tok);
@@ -334,13 +334,13 @@ aToken_type statement(aToken_type tok){
         emit(SIO, 0, 0);
 
         if (tok.t != identsym){
-            error(0);
+            error(28);
         }
 
         tok = advance(tok);
 
         if (tok.t != semicolonsym){
-            error(0);
+            error(10);
         }
 
         tok = factor(tok);
