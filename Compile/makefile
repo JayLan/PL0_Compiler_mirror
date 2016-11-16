@@ -1,11 +1,14 @@
-compiler: compile.o error.o lexer.o parser.o
-	g++ compile.o error.o lexer.o parser.o -o compile
+compiler: compile.o error.o tokens.o lexer.o parser.o
+	g++ compile.o error.o tokens.o lexer.o parser.o -o compile
 
 compile.o: compile.c
 	g++ -c compile.c
 
 error.o: error.c
 	g++ -c error.c
+
+tokens.o: tokens.c
+	g++ -c tokens.c
 
 lexer.o: lexer.c
 	g++ -c lexer.c
