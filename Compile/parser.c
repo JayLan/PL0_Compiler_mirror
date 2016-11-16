@@ -83,7 +83,7 @@ void program(aToken_type tok){
     //consume first token
     advance(tok);
 
-	tok = block(tok, 1);
+	tok = block(tok, 0);
 
 	if(tok.t != periodsym){
 		error(9);
@@ -265,7 +265,7 @@ aToken_type statement(aToken_type tok){
     if(tok.t == beginsym){
         tok = advance(tok);
         tok = statement(tok);
-        emit(STO, 0, 4);
+        //emit(STO, 0, 4);
 
         do{
             tok = advance(tok);
@@ -280,7 +280,7 @@ aToken_type statement(aToken_type tok){
         }
 
         tok = advance(tok);
-        emit(STO, 0, 4);
+        //emit(STO, 0, 4);
 
         return tok;
 
@@ -490,7 +490,7 @@ aToken_type factor(aToken_type tok){
                 emit(LIT, 0, tok.val.number);
             }
             else {
-              emit(LOD, 0, symbol_address(sym_pos));
+                emit(LOD, 0, symbol_address(sym_pos));
             }
 		}else if(tok.t == numbersym){
             emit(LIT, 0, (tok.val).number);
