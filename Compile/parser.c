@@ -361,9 +361,9 @@ aToken_type statement(aToken_type tok){
 
         tok = advance(tok);
 
-        if (tok.t != semicolonsym){
-            error(10);
-        }
+        //if (tok.t != semicolonsym){
+        //    error(10);
+        //}
 
         tok = factor(tok);
         return tok;
