@@ -1,0 +1,9 @@
+var t, q;
+begin
+	t := 5;
+	q := 1;
+	while t > q do
+	begin
+		q := q + 1;
+	end;
+end.

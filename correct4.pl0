@@ -1,0 +1,10 @@
+var k;
+var h;
+
+begin
+	k := 4;
+	h := k * 2;
+	if k <> h then h := 0;
+	
+end.
+
