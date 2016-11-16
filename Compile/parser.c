@@ -299,7 +299,7 @@ aToken_type statement(aToken_type tok){
         ctemp = cx;
         emit(JPC, 0, 0);
         tok = statement(tok);
-        symbol_table[ctemp].addr = cx;
+        codeArray[ctemp].l = cx;
 
         return tok;
     }
