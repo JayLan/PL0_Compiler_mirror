@@ -1,4 +1,4 @@
-const x = 8;
+const x := 8;
 var n;
 begin
 	n := n + x;
