@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
     }
 
     // remove the following line for command line execution
-    //argv[1] = "correct4.pl0";
+    argv[1] = "incorrect9.pl0";
 
     //open source file and writable clean file
     source = fopen(argv[1], "r");
@@ -96,8 +96,10 @@ int main(int argc, char* argv[]) {
     program(tok);
 
     //print the symbol table to std out
+    /*
     printf("\n-------------------SYMBOLS-------------------\n");
     print_symboltable();
+    */
 
     // Close the cleanFile pointer
     fclose(clean);
@@ -113,7 +115,7 @@ int main(int argc, char* argv[]) {
     //printf("\n\nPM0 output:\n------\n");
     print_pm0(codeFile);
 
-    printf("Compiled PM0 code written to %s\n", argv[2]);
+    //printf("Compiled PM0 code written to %s\n", argv[2]);
 
     return 0;
 }
