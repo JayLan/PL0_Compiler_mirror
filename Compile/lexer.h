@@ -20,7 +20,6 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#include "tokens.h"
 #include <stdio.h>
 #include <stdlib.h>
 

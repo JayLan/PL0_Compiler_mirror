@@ -60,6 +60,7 @@ void print_symboltable();
 int find_valid_symbol_kind(char* identstr, int kind);
 
 /*SYMBOL  TABLE and PM0 CODE ARRAY AVAIL TO ALL PARSER FUNCTIONS*/
+extern aToken_type* tokArr;
 symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
 instruction codeArray [MAX_CODE_LENGTH];
 
@@ -218,7 +219,7 @@ aToken_type proc_declaration(aToken_type tok, int l){
 		}
 
 		tok = advance(tok);
-		//**
+		//
 
 	}
 
@@ -367,6 +368,8 @@ aToken_type statement(aToken_type tok){
         tok = factor(tok);
         return tok;
     }
+
+    return tok;
 }
 
 // Processes a condition

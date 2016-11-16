@@ -19,6 +19,7 @@
 
 #ifndef TOKENS_H
 #define TOKENS_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -82,9 +83,5 @@ bool addToken(aToken_type* t);
 aToken_type nextToken();
 aToken_type rewindParseTokens();
 void  displayToken(aToken_type t);
-
-aToken_type* tokArr;
-int lexCtr;
-int parseCtr;
 
 #endif // TOKENS_H

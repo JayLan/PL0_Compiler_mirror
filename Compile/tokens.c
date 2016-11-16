@@ -24,19 +24,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef TOKENS_C
-#define TOKENS_C
-
-/*
-bool addToken(aToken_type* t);
-aToken_type nextToken();
-aToken_type rewindParseTokens();
-void  displayToken(aToken_type t);
-
-extern aToken_type* tokArr;
-extern int lexCtr;
-extern int parseCtr;
-*/
+aToken_type* tokArr;
+int lexCtr;
+int parseCtr;
 
 bool addToken(aToken_type* t){
 
@@ -133,6 +123,4 @@ void  displayToken(aToken_type t){
     return;
 
 } // END display token
-
-#endif // TOKENS_C
 
