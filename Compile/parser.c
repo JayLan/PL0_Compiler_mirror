@@ -335,7 +335,7 @@ aToken_type statement(aToken_type tok){
         }
 
         //check to make sure ident is a valid variable symbol stored in symbol table
-        int sym_pos = find_valid_symbol_kind(tok.val.identifier, 2);
+        find_valid_symbol_kind(tok.val.identifier, 2);
 
         tok = advance(tok);
 
@@ -357,7 +357,7 @@ aToken_type statement(aToken_type tok){
         }
 
         //check to make sure ident is a valid variable symbol stored in symbol table
-        int sym_pos = find_valid_symbol_kind(tok.val.identifier, 2);
+        find_valid_symbol_kind(tok.val.identifier, 2);
 
         tok = advance(tok);
 

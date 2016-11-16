@@ -1,0 +1,7 @@
+var a, b, c;
+begin
+
+ 	a := 22;
+	b := a + 20;
+	c := b
+end.

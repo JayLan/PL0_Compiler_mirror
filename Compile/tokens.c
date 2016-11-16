@@ -24,15 +24,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef TOKEN_GLOBALS
+#define TOKEN_GLOBALS
 aToken_type* tokArr;
 int lexCtr;
-int parseCtr;
+int parseCtr = -1;
+#endif // TOKEN_GLOBALS
 
 bool addToken(aToken_type* t){
 
     //initialize tokCtr if necessary
     if(tokArr == NULL){
-        tokArr = malloc(sizeof(aToken_type)*TOKEN_ARRAY_SIZE);
+        tokArr = (aToken_type*) malloc(sizeof(aToken_type)*TOKEN_ARRAY_SIZE);
         lexCtr = 0;
     }
 
@@ -42,7 +45,7 @@ bool addToken(aToken_type* t){
 
     //add string ident or value if needed
     if(n ==2 ){
-        tokArr[lexCtr].val.identifier = malloc(sizeof(char) * MAX_IDENT_LENGTH);
+        tokArr[lexCtr].val.identifier = (char*) malloc(sizeof(char) * MAX_IDENT_LENGTH);
         strcpy( tokArr[lexCtr].val.identifier, t->val.identifier );
     }
     else if(n == 3){
@@ -56,7 +59,7 @@ bool addToken(aToken_type* t){
 
 aToken_type nextToken(){
     //initialize tokCtr if necessary
-    if(parseCtr == NULL){
+    if(parseCtr == -1){
         //printf("initializing parseCtr = 0\n");
         parseCtr = 0;
     }
@@ -74,7 +77,7 @@ aToken_type rewindParseTokens(){
 void  displayToken(aToken_type t){
 
     //Declare an array with possible token types.
-    const char* tokenTypeNames[] = {
+    /*const char* tokenTypeNames[] = {
         "PLACE_HOLDER",//  to align other values with enum token_type (starts at 1)
         "nulsym",   //  1
         "identsym", //  2
@@ -108,7 +111,7 @@ void  displayToken(aToken_type t){
         "procedure",// 30
         "write",    // 31
         "read",     // 32
-        "else" };   // 33
+        "else" };   // 33 */
 
     printf("%d ", t.t);
 

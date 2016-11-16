@@ -72,7 +72,7 @@ int do_lex(FILE* cleanFile){
     }
 
     //Close the cleanFile pointer
-    fclose(cleanFile);
+    //fclose(cleanFile);
 
     return 0;
 

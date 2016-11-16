@@ -26,6 +26,7 @@
 #include "lexer.h"
 #include "vm.h"
 
+
 int main(int argc, char* argv[]) {
 
     // Declare and Initialize Variables:
@@ -47,13 +48,13 @@ int main(int argc, char* argv[]) {
     }
 
     // remove the following line for command line execution
-    argv[1] = "correct4.pl0";
+    //argv[1] = "correct4.pl0";
 
     //open source file and writable clean file
     source = fopen(argv[1], "r");
-    clean = fopen("clean.pl0", "w");
+    clean = fopen("clean.pl0", "w+");
     if (source == NULL){
-        printf("Unable to open source file at %s/%s.\n",argv[0], argv[1]);
+        printf("Unable to open source file at %s/%s.\n", argv[0], argv[1]);
         return 0;
     }
     if (clean == NULL){
@@ -69,7 +70,7 @@ int main(int argc, char* argv[]) {
     fclose(clean);
 
     // Have clean point to the new, clean file read-only:
-    clean = fopen("loop_mult.pl0", "r");
+    clean = fopen("clean.pl0", "r");
 
     // run the lexer
     do_lex(clean);

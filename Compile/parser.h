@@ -1,6 +1,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include <stdlib.h>
 #include "tokens.h"
 
 void program(aToken_type tok);

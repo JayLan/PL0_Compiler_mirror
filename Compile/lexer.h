@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "tokens.h"
 
 int do_lex(FILE* clean);
 aToken_type* getNextToken(FILE* cleanFile);
