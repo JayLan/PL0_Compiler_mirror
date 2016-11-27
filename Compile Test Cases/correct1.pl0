@@ -1,0 +1,15 @@
+var l, m, n, o, p, q, r, s, t;
+const TEN = 10;
+begin
+	/* Commenty comment */
+ 	t := 0;
+ 	r := TEN;
+	m := r + r;
+	o := m * m;
+	/* Commenty comment */
+	/* Commenty comment */
+	IF t < o THEN 
+		t := m - r;
+end.
+
+

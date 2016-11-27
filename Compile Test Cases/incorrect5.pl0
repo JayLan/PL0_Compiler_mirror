@@ -1,0 +1,5 @@
+var a, b; 
+begin 
+	if a = b 	/* missing then */
+		a := 1
+end. 

@@ -40,13 +40,13 @@ void program(aToken_type tok);
 aToken_type block(aToken_type tok, int level);
 aToken_type const_declaration(aToken_type tok, int level);
 aToken_type var_declaration(aToken_type tok, int level);
-//aToken_type proc_declaration(aToken_type tok, int level);
+aToken_type proc_declaration(aToken_type tok, int level);
 aToken_type statement(aToken_type tok);
 aToken_type condition(aToken_type tok);
 aToken_type expression(aToken_type tok);
 aToken_type term(aToken_type tok);
 aToken_type factor(aToken_type tok);
-void relation(aToken_type tok);
+int relation(aToken_type tok);
 aToken_type advance(aToken_type tok);
 
 void put_symbol(int kind, char* name, int num, int level, int modifier);
@@ -101,7 +101,7 @@ aToken_type block(aToken_type tok, int l){
     //printf("block function | token is %d\n", tok.t);
     tok = const_declaration(tok, l);
     tok = var_declaration(tok, l);
-    //tok = proc_declaration(tok, l);
+    tok = proc_declaration(tok, l);
     tok = statement(tok);
 
 	return tok;
@@ -186,7 +186,7 @@ aToken_type var_declaration(aToken_type tok, int l){
 	return tok;
 }
 
-/*
+
 // Processes the process declaration
 aToken_type proc_declaration(aToken_type tok, int l){
 
@@ -225,7 +225,6 @@ aToken_type proc_declaration(aToken_type tok, int l){
 
     return tok;
 }
-*/
 
 // Addresses multiple declared statements
 aToken_type statement(aToken_type tok){
@@ -335,7 +334,8 @@ aToken_type statement(aToken_type tok){
         }
 
         //check to make sure ident is a valid variable symbol stored in symbol table
-        find_valid_symbol_kind(tok.val.identifier, 2);
+        int sym_pos = find_valid_symbol_kind(tok.val.identifier, 2);
+        emit(STO, symbol_level(sym_pos), symbol_address(sym_pos)); //needs L and M modified
 
         tok = advance(tok);
 
@@ -382,38 +382,40 @@ aToken_type condition(aToken_type tok){
 
 	}else{
 		tok = expression(tok);
-		relation(tok);
+
+		int rel_sym = relation(tok);
 		tok = advance(tok);
+
 		tok = expression(tok);
 
+        emit(OPR, 0, rel_sym);
 	}
 	return tok;
 }
 
-void relation(aToken_type tok){
+int relation(aToken_type tok){
 
 	switch(tok.t){
 		case eqsym:
-		    emit(OPR, 0, 8);
+		    return 8;
 			break;
 		case neqsym:
-		    emit(OPR, 0, 9);
+		    return 9;
 			break;
 		case lessym:
-		    emit(OPR, 0, 10);
+		    return 10;
 			break;
 		case leqsym:
-		    emit(OPR, 0, 11);
+		    return 11;
 			break;
 		case gtrsym:
-		    emit(OPR, 0, 12);
+		    return 12;
 			break;
 		case geqsym:
-		    emit(OPR, 0, 13);
+		    return 13;
 			break;
 		default:
 			error(20);
-			exit(1);
 			break;
 	}
 }
@@ -582,8 +584,13 @@ void print_pm0(FILE* outFile){
     int i;
 
     for(i = 0; i < cx; i++){
-        //printf("%d %d %d\n", (codeArray[i]).op, (codeArray[i]).l, (codeArray[i]).m);
         fprintf(outFile, "%d %d %d\n", (codeArray[i]).op, (codeArray[i]).l, (codeArray[i]).m);
+    }
+}
+void print_pm0_screen(){
+    int i;
+    for(i = 0; i < cx; i++){
+        printf("%d %d %d\n", (codeArray[i]).op, (codeArray[i]).l, (codeArray[i]).m);
     }
 }
 
