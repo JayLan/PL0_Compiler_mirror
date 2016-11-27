@@ -299,7 +299,7 @@ aToken_type statement(aToken_type tok){
         emit(JPC, 0, 0);
         tok = statement(tok);
         codeArray[ctemp].m = cx;
-        printf("modified m-val of instr at line %d: %d", ctemp, cx);
+        printf("IFSYM: modified m-val of instr at line %d: %d\n", ctemp, cx);
 
         return tok;
     }
@@ -321,7 +321,7 @@ aToken_type statement(aToken_type tok){
         tok = statement(tok);
         emit(JMP, 0, cx1);
         codeArray[cx2].m = cx; //originall said "symbolTabls"
-        printf("modified m-val of instr at line %d: %d", cx2, cx);
+        printf("WHILESYM: modified m-val of instr at line %d: %d\n", cx2, cx);
 
         return tok;
     }
@@ -352,14 +352,16 @@ aToken_type statement(aToken_type tok){
     if(tok.t == writesym){
         tok = advance(tok);
 
-        emit(SIO, 0, 0);
-
         if (tok.t != identsym){
             error(28);
         }
 
         //check to make sure ident is a valid variable symbol stored in symbol table
-        find_valid_symbol_kind(tok.val.identifier, 2);
+        int sym_pos = find_valid_symbol_kind(tok.val.identifier, 2);
+
+        //emit instructions to load the identifier & print it
+        emit (LOD, symbol_level(sym_pos), symbol_address(sym_pos));
+        emit(SIO, 0, 0);
 
         tok = advance(tok);
 
