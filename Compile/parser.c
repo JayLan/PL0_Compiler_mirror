@@ -299,6 +299,7 @@ aToken_type statement(aToken_type tok){
         emit(JPC, 0, 0);
         tok = statement(tok);
         codeArray[ctemp].m = cx;
+        printf("modified m-val of instr at line %d: %d", ctemp, cx);
 
         return tok;
     }
@@ -319,7 +320,8 @@ aToken_type statement(aToken_type tok){
 
         tok = statement(tok);
         emit(JMP, 0, cx1);
-        symbol_table[cx2].addr = cx;
+        codeArray[cx2].m = cx; //originall said "symbolTabls"
+        printf("modified m-val of instr at line %d: %d", cx2, cx);
 
         return tok;
     }
