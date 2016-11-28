@@ -1,0 +1,41 @@
+correct2.pm0
+PL/0 code:
+
+  0  INC         7
+  1  INP
+  2  INP
+  3  LOD    0    4
+  4  LSS
+  5  LOD    0    5
+  6  JPC         0
+  7  LOD    0    5
+  8  STO    0    6
+  9  LOD    0    4
+ 10  STO    0    5
+ 11  LOD    0    6
+ 12  STO    0    4
+ 13  LOD    0    5
+ 14  NEQ
+ 15  LIT         0
+ 16  JPC         0
+ 17  LOD    0    5
+ 18  STO    0    6
+ 19  LOD    0    4
+ 20  LOD    0    4
+ 21  LOD    0    5
+ 22  DIV
+ 23  LOD    0    5
+ 24  MUL
+ 25  SUB
+ 26  STO    0    5
+ 27  LOD    0    6
+ 28  STO    0    4
+ 29  JMP        13
+ 30  OUT
+ 31  HLT
+
+Execution:
+                      pc   bp   sp   stack
+                       0    1    0
+  0  INC         7     1    1    7   0 0 0 0 0 0 0
+  1  INP

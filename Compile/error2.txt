@@ -1,0 +1,1 @@
+LEX ERROR #10: Identifier cannot start with a number

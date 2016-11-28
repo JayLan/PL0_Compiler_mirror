@@ -1,0 +1,14 @@
+const t = 10;
+var l, m, n, o, p, q, r, s;
+begin
+	/* Commenty comment */
+ 	l := 0;
+ 	r := t;
+	/* Commenty comment */
+	/* Commenty comment */
+	write r;
+	if r < 11 then
+		r := 11;
+end.
+
+

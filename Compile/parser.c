@@ -274,6 +274,8 @@ aToken_type statement(aToken_type tok){
 
         tok = statement(tok);
 
+        //printf("%d \n", tok.t); //** this is where error throws if contents of else aren't there twice. Maybe a do while will fix?
+
         if(tok.t != endsym){
             error(17); //**proc example stops here, on line 10 of pl0 code
         }
@@ -304,6 +306,22 @@ aToken_type statement(aToken_type tok){
         return tok;
     }
 
+    /*if (tok.t == elsesym){ //**************************
+        tok = advance(tok);
+        ctemp = cx;
+        emit(JPC, 0, 0);
+        tok = statement(tok);
+        codeArray[ctemp].m = cx;
+
+        tok = advance(tok);
+        ctemp = cx;
+        emit(JPC, 0, 0);
+        tok = statement(tok);
+        codeArray[ctemp].m = cx;
+
+        return tok;
+    }                      //**************************
+    */
     if(tok.t == whilesym){
         cx1 = cx;
         tok = advance(tok);
@@ -357,7 +375,7 @@ aToken_type statement(aToken_type tok){
         }
 
         //check to make sure ident is a valid variable symbol stored in symbol table
-        int sym_pos = find_valid_symbol_kind(tok.val.identifier, 2);
+        int sym_pos = find_valid_symbol_kind(tok.val.identifier, 2); // *********************** needs to take in constants too, according to example
 
         //emit instructions to load the identifier & print it
         emit (LOD, symbol_level(sym_pos), symbol_address(sym_pos));
@@ -567,7 +585,7 @@ int find_valid_symbol_kind(char* identstr, int kind){
         int symbol_pos = find_symbol(identstr);
         if (symbol_pos == -1){
             error(11);
-        } else if (kind != -1 && symbol_kind(symbol_pos) != kind){
+        } else if (kind != -1 && symbol_kind(symbol_pos) != kind && symbol_kind(symbol_pos)!= 1){//********************
             error(12);
         }
         return symbol_pos;

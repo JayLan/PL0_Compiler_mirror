@@ -1,0 +1,27 @@
+correct3.pm0
+PL/0 code:
+
+  0  INC         7
+  1  INP
+  2  INP
+  3  LOD    0    4
+  4  LOD    0    5
+  5  ADD
+  6  STO    0    6
+  7  OUT
+  8  HLT
+
+Execution:
+                      pc   bp   sp   stack
+                       0    1    0
+  0  INC         7     1    1    7   0 0 0 0 0 0 0
+  1  INP           1
+    2    1    8   0 0 0 0 0 0 0 1
+  2  INP           2
+    3    1    9   0 0 0 0 0 0 0 1 2
+  3  LOD    0    4     4    1   10   0 0 0 0 0 0 0 1 2 0
+  4  LOD    0    5     5    1   11   0 0 0 0 0 0 0 1 2 0 0
+  5  ADD               6    1   10   0 0 0 0 0 0 0 1 2 0
+  6  STO    0    6     7    1    9   0 0 0 0 0 0 0 1 2
+  7  OUT           2    8    1    8   0 0 0 0 0 0 0 1
+  8  HLT               9    1    8   0 0 0 0 0 0 0 1

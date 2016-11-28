@@ -1,0 +1,4 @@
+var a, b; 
+begin 
+	a := b - 32; 
+end /* missing period */

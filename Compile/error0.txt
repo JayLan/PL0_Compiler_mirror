@@ -1,0 +1,1 @@
+LEX ERROR #11: Invalid token

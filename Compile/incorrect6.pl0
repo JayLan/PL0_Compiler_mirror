@@ -1,0 +1,5 @@
+var a, b;
+begin 
+	if a b then /* missing rel-op in condition */
+		a := b
+end.

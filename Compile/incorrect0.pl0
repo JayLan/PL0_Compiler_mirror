@@ -1,0 +1,11 @@
+BEGIN
+  r := x;
+  q := 0;
+  w := y;
+  
+WHILE w > y DO 
+	BEGIN
+	    q := 2 * q;
+	    w =: w / 2; /* =: is an invalid token */
+	end
+END.
