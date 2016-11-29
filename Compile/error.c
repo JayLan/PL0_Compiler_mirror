@@ -109,7 +109,7 @@ void error(int errnum){
             printf("'read' must be followed by an identifier.");
             break;
         case 28:
-            printf("'write' must be followed by an identifier.");
+            printf("'write' must be followed by a variable or constant identifier.");
             break;
         default:
             printf("wooooo mystery error (try a number 1-28)");

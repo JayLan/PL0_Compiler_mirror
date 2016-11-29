@@ -41,15 +41,16 @@ aToken_type block(aToken_type tok, int level);
 aToken_type const_declaration(aToken_type tok, int level);
 aToken_type var_declaration(aToken_type tok, int level);
 aToken_type proc_declaration(aToken_type tok, int level);
-aToken_type statement(aToken_type tok);
-aToken_type condition(aToken_type tok);
-aToken_type expression(aToken_type tok);
-aToken_type term(aToken_type tok);
-aToken_type factor(aToken_type tok);
+aToken_type statement(aToken_type tok, int level);
+aToken_type condition(aToken_type tok, int level);
+aToken_type expression(aToken_type tok, int level);
+aToken_type term(aToken_type tok, int level);
+aToken_type factor(aToken_type tok, int level);
 int relation(aToken_type tok);
 aToken_type advance(aToken_type tok);
 
 void put_symbol(int kind, char* name, int num, int level, int modifier);
+void update_address(int pos, int modifier);
 int find_symbol(char* identstr);
 int symbol_kind(int symbol_pos);
 int symbol_level(int symbol_pos);
@@ -57,7 +58,7 @@ int symbol_address(int symbol_pos);
 void emit (int op, int l, int m);
 void print_pm0(FILE* outFile);
 void print_symboltable();
-int find_valid_symbol_kind(char* identstr, int kind);
+int find_symbol_kind(char* identstr, int kind);
 
 /*SYMBOL  TABLE and PM0 CODE ARRAY AVAIL TO ALL PARSER FUNCTIONS*/
 extern aToken_type* tokArr;
@@ -67,6 +68,7 @@ instruction codeArray [MAX_CODE_LENGTH];
 /* Global counters */
 static int cx = 0;
 static int symctr = 0;
+static int varctr = 0;
 
 
 // *** main() is located in compile.c ***
@@ -89,6 +91,7 @@ void program(aToken_type tok){
 		error(9);
 	}
 
+    //print return instruction
 	emit(SIO, 0, 2);
 
 	printf("No errors, the program is syntactically correct.\n");
@@ -98,11 +101,30 @@ void program(aToken_type tok){
 // Processes code block declarations
 aToken_type block(aToken_type tok, int l){
 
-    //printf("block function | token is %d\n", tok.t);
+    //save location in symbol table
+    int prev_symctr = symctr;
+
+    //generate jump
+    int jx = cx;
+    emit(JMP, 0, 0);
+
     tok = const_declaration(tok, l);
+
+    //determine amount of space to allocate
     tok = var_declaration(tok, l);
+    int space = 4 + varctr;
+
+    //parse any procedures
     tok = proc_declaration(tok, l);
-    tok = statement(tok);
+
+    //update JMP & emit INC
+    codeArray[jx].m = cx;
+    emit(INC, 0, space);
+
+    tok = statement(tok, l);
+
+    //rewind to previous location in symbol table for scope control
+    symctr = prev_symctr;
 
 	return tok;
 }
@@ -110,12 +132,12 @@ aToken_type block(aToken_type tok, int l){
 // Handles declarations of constants
 aToken_type const_declaration(aToken_type tok, int l){
 
-    //printf("const_declaration function | token is %d\n", tok.t);
-
+    //return if there are no constants
 	if(tok.t != constsym){
 		return tok;
 	}
 
+    //add constants to symbol table while they exist
 	do {
         tok = advance(tok);
 
@@ -154,24 +176,26 @@ aToken_type const_declaration(aToken_type tok, int l){
 // Handles declarations of variables
 aToken_type var_declaration(aToken_type tok, int l){
 
-    //printf("var_declaration function | token is %d\n", tok.t);
+    //instead of local variable numvars, must use a global variable accessible to block:
+    //the INC instruction must be generated in block to be in the proper order
+    varctr = 0;
 
+    //return if there are no variables
 	if(tok.t != varsym){
         return tok;
 	}
 
-    int num_vars = 0;
-
+    //count and add vars to symbol table
 	do{
         tok = advance(tok);
         if (tok.t != identsym){
             error(4);
         }
 
-        num_vars++;
+        varctr++;
 
         //add variable to symbol table
-        put_symbol(2, tok.val.identifier, 0, l, (3 + num_vars));
+        put_symbol(2, tok.val.identifier, 0, l, (3 + varctr));
         tok = advance(tok);
 
 	}while(tok.t == commasym);
@@ -181,20 +205,23 @@ aToken_type var_declaration(aToken_type tok, int l){
     }
 
     tok = advance(tok);
-    emit(INC, 0, 4 + num_vars);
 
 	return tok;
 }
 
 
-// Processes the process declaration
+// Processes the procedure declaration
 aToken_type proc_declaration(aToken_type tok, int l){
 
+    //return if there are no procedures
 	if(tok.t != procsym){
 		return tok;
 	}
 
+    //parse procedures
 	while(tok.t == procsym){
+        //store location in code array
+        int px = cx;
 		tok = advance(tok);
 
 		if(tok.t != identsym){
@@ -202,6 +229,7 @@ aToken_type proc_declaration(aToken_type tok, int l){
 		}
 
 		//add procedure to symbol table
+		int proc_pos = symctr;
         put_symbol(3, tok.val.identifier, 0, l, 0);
 
 		tok = advance(tok);
@@ -212,29 +240,34 @@ aToken_type proc_declaration(aToken_type tok, int l){
 
 		tok = advance(tok);
 
+        //parse the body of the procedure
 		tok = block(tok, l+1);
+
+		//update procedure symbol with code address
+		update_address(proc_pos, px);
 
 		if(tok.t != semicolonsym){
 			error(5);
 		}
 
-		tok = advance(tok);
-		//
+        //emit return instruction
+        emit(OPR, 0, 0);
 
+		tok = advance(tok);
 	}
 
     return tok;
 }
 
 // Addresses multiple declared statements
-aToken_type statement(aToken_type tok){
+aToken_type statement(aToken_type tok, int l){
 
     int ctemp, cx1, cx2;
 
     if(tok.t == identsym){
 
         //check to make sure ident is a valid variable symbol stored in symbol table
-        int sym_pos = find_valid_symbol_kind(tok.val.identifier, 2);
+        int sym_pos = find_symbol_kind(tok.val.identifier, 2);
 
         tok = advance (tok);
 
@@ -244,9 +277,10 @@ aToken_type statement(aToken_type tok){
         }
 
         tok = advance(tok);
-        tok = expression(tok);
+        tok = expression(tok, l);
 
-        emit(STO, symbol_level(sym_pos), symbol_address(sym_pos));
+        //LOD and STO instructions must use lex-level difference
+        emit(STO, l - symbol_level(sym_pos), symbol_address(sym_pos));
 
         return tok;
     }
@@ -254,30 +288,35 @@ aToken_type statement(aToken_type tok){
     if(tok.t == callsym){
         tok = advance(tok);
 
-        if(tok.t != identsym){
+        int sym_pos = find_symbol_kind(tok.val.identifier, 3);
+
+        // covered by find_symbol_kind above
+        /*if(tok.t != identsym){
             error(14);
-        }
+        }*/
+
+        emit(CAL, l-symbol_level(sym_pos), symbol_address(sym_pos));
 
         tok = advance(tok);
     }
 
     if(tok.t == beginsym){
         tok = advance(tok);
-        tok = statement(tok);
+        tok = statement(tok, l);
         //emit(STO, 0, 4);
 
         do{
             tok = advance(tok);
-            tok = statement(tok);
+            tok = statement(tok, l);
 
         }while(tok.t == semicolonsym);
 
-        tok = statement(tok);
+        tok = statement(tok, l);
 
         //printf("%d \n", tok.t); //** this is where error throws if contents of else aren't there twice. Maybe a do while will fix?
 
         if(tok.t != endsym){
-            error(17); //**proc example stops here, on line 10 of pl0 code
+            error(17);
         }
 
         tok = advance(tok);
@@ -289,7 +328,7 @@ aToken_type statement(aToken_type tok){
 
     if(tok.t == ifsym){
         tok = advance(tok);
-        tok = condition(tok);
+        tok = condition(tok, l);
 
         if(tok.t != thensym){
             error(16);
@@ -299,9 +338,8 @@ aToken_type statement(aToken_type tok){
 
         ctemp = cx;
         emit(JPC, 0, 0);
-        tok = statement(tok);
+        tok = statement(tok, l);
         codeArray[ctemp].m = cx;
-        printf("IFSYM: modified m-val of instr at line %d: %d\n", ctemp, cx);
 
         return tok;
     }
@@ -325,7 +363,7 @@ aToken_type statement(aToken_type tok){
     if(tok.t == whilesym){
         cx1 = cx;
         tok = advance(tok);
-        tok = condition(tok);
+        tok = condition(tok, l);
         cx2 = cx;
 
         emit(JPC, 0, 0);
@@ -336,10 +374,9 @@ aToken_type statement(aToken_type tok){
             tok = advance(tok);
         }
 
-        tok = statement(tok);
+        tok = statement(tok, l);
         emit(JMP, 0, cx1);
-        codeArray[cx2].m = cx; //originall said "symbolTabls"
-        printf("WHILESYM: modified m-val of instr at line %d: %d\n", cx2, cx);
+        codeArray[cx2].m = cx;
 
         return tok;
     }
@@ -354,8 +391,8 @@ aToken_type statement(aToken_type tok){
         }
 
         //check to make sure ident is a valid variable symbol stored in symbol table
-        int sym_pos = find_valid_symbol_kind(tok.val.identifier, 2);
-        emit(STO, symbol_level(sym_pos), symbol_address(sym_pos)); //needs L and M modified
+        int sym_pos = find_symbol_kind(tok.val.identifier, 2);
+        emit(STO, l - symbol_level(sym_pos), symbol_address(sym_pos));
 
         tok = advance(tok);
 
@@ -363,7 +400,7 @@ aToken_type statement(aToken_type tok){
             error(10);
         }
 
-        tok = statement(tok);
+        tok = statement(tok, l);
         return tok;
     }
 
@@ -375,10 +412,15 @@ aToken_type statement(aToken_type tok){
         }
 
         //check to make sure ident is a valid variable symbol stored in symbol table
-        int sym_pos = find_valid_symbol_kind(tok.val.identifier, 2); // *********************** needs to take in constants too, according to example
+        int sym_pos = find_symbol(tok.val.identifier);
+        if (symbol_kind(sym_pos) != 1 && symbol_kind(sym_pos) != 2){
+            error(28);
+        }
+                           //find_symbol_kind(tok.val.identifier, 2); // *********************** needs to take in constants too, according to example
 
         //emit instructions to load the identifier & print it
-        emit (LOD, symbol_level(sym_pos), symbol_address(sym_pos));
+        //need to update L
+        emit (LOD, l - symbol_level(sym_pos), symbol_address(sym_pos));
         emit(SIO, 0, 0);
 
         tok = advance(tok);
@@ -387,7 +429,7 @@ aToken_type statement(aToken_type tok){
         //    error(10);
         //}
 
-        tok = factor(tok);
+        tok = factor(tok, l);
         return tok;
     }
 
@@ -395,20 +437,20 @@ aToken_type statement(aToken_type tok){
 }
 
 // Processes a condition
-aToken_type condition(aToken_type tok){
+aToken_type condition(aToken_type tok, int l){
 
 	if(tok.t == oddsym){
 		tok = advance(tok);
 		emit(OPR, 0, 6);
-		tok = expression(tok);
+		tok = expression(tok, l);
 
 	}else{
-		tok = expression(tok);
+		tok = expression(tok, l);
 
 		int rel_sym = relation(tok);
 		tok = advance(tok);
 
-		tok = expression(tok);
+		tok = expression(tok, l);
 
         emit(OPR, 0, rel_sym);
 	}
@@ -443,14 +485,14 @@ int relation(aToken_type tok){
 }
 
 // Handles expressions
-aToken_type expression(aToken_type tok){
+aToken_type expression(aToken_type tok, int l){
 
 	int addop;
 
     if(tok.t == plussym || tok.t == minussym){
         addop = tok.t;
         tok = advance(tok);
-        tok = term(tok);
+        tok = term(tok, l);
 
         if(addop == minussym){
             emit(OPR, 0, NEG);
@@ -461,13 +503,13 @@ aToken_type expression(aToken_type tok){
         }
 
     }else{
-        tok = term(tok);
+        tok = term(tok, l);
     }
 
 	while(tok.t == plussym || tok.t == minussym){
 		addop = tok.t;
 		tok = advance(tok);
-		tok = term(tok);
+		tok = term(tok, l);
 
 		if (addop == plussym){
             emit(OPR, 0, ADD); // addition
@@ -482,15 +524,15 @@ aToken_type expression(aToken_type tok){
 }
 
 // Handles the terms
-aToken_type term(aToken_type tok){
+aToken_type term(aToken_type tok, int l){
 	int mulop;
 
-	tok = factor(tok);
+	tok = factor(tok, l);
 
 	while(tok.t == multsym || tok.t == slashsym){
 		mulop = tok.t;
 		tok = advance(tok);
-		tok = factor(tok);
+		tok = factor(tok, l);
 
 		if (mulop == multsym){
             emit(OPR, 0, MUL);
@@ -503,32 +545,32 @@ aToken_type term(aToken_type tok){
 }
 
 // Processes a factor
-aToken_type factor(aToken_type tok){
+aToken_type factor(aToken_type tok, int l){
 
 		if (tok.t == identsym){
             //check to make sure ident is a valid variable symbol stored in symbol table
-            int sym_pos = find_valid_symbol_kind(tok.val.identifier, -1);
+            int sym_pos = find_symbol_kind(tok.val.identifier, -1);
             tok = advance(tok);
             // you need to distinguish between a constant and a variable
             if (symbol_kind(sym_pos) == 1){
                 emit(LIT, 0, tok.val.number);
             }
             else {
-                emit(LOD, 0, symbol_address(sym_pos));
+                //need to update L
+                emit(LOD, l - symbol_level(sym_pos), symbol_address(sym_pos));
             }
 		}else if(tok.t == numbersym){
             emit(LIT, 0, (tok.val).number);
             tok = advance(tok);
 		}else if(tok.t == lparentsym){
             tok = advance(tok);
-            tok = expression(tok);
+            tok = expression(tok, l);
 
             if (tok.t != rparentsym){
                 error(22);
-				exit(1);
             }
-
             tok = advance(tok);
+
 		}else{
 			return tok;
 		}
@@ -556,6 +598,10 @@ void put_symbol(int kind, char* name, int num, int level, int modifier){
     symctr++;
 }
 
+void update_address(int pos, int modifier){
+    symbol_table[pos].addr = modifier;
+}
+
 int find_symbol(char* identstr){
     int i;
     for (i=0; i < symctr; i++){
@@ -580,12 +626,12 @@ int symbol_address(int symbol_pos){
 
 //takes an ident string and an expected kind (-1 for any)
 //returns position in symbol table or throws error if not found
-int find_valid_symbol_kind(char* identstr, int kind){
+int find_symbol_kind(char* identstr, int kind){
     //check to make sure ident is a valid variable stored in symbol table
         int symbol_pos = find_symbol(identstr);
         if (symbol_pos == -1){
             error(11);
-        } else if (kind != -1 && symbol_kind(symbol_pos) != kind && symbol_kind(symbol_pos)!= 1){//********************
+        } else if (kind != -1 && symbol_kind(symbol_pos) != kind){
             error(12);
         }
         return symbol_pos;
