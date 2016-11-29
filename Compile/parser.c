@@ -124,7 +124,7 @@ aToken_type block(aToken_type tok, int l){
     tok = statement(tok, l);
 
     //rewind to previous location in symbol table for scope control
-    symctr = prev_symctr; *******************************************put this back!!!!
+    symctr = prev_symctr;
 
 	return tok;
 }
