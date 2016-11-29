@@ -339,27 +339,23 @@ aToken_type statement(aToken_type tok, int l){
         ctemp = cx;
         emit(JPC, 0, 0);
         tok = statement(tok, l);
-        codeArray[ctemp].m = cx;
+        codeArray[ctemp].m = cx + 1; //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Don't know if this helps???
 
         return tok;
     }
 
-    /*if (tok.t == elsesym){ //**************************
-        tok = advance(tok);
-        ctemp = cx;
-        emit(JPC, 0, 0);
-        tok = statement(tok);
-        codeArray[ctemp].m = cx;
+    if (tok.t == elsesym){ //**************************
 
-        tok = advance(tok);
+        do {tok = advance(tok);
         ctemp = cx;
-        emit(JPC, 0, 0);
-        tok = statement(tok);
-        codeArray[ctemp].m = cx;
+        emit(JMP, 0, 0);
+        tok = statement(tok, l);
+        codeArray[ctemp].m = cx;} while (tok.t == elsesym);
 
         return tok;
     }                      //**************************
-    */
+
+
     if(tok.t == whilesym){
         cx1 = cx;
         tok = advance(tok);
@@ -420,7 +416,14 @@ aToken_type statement(aToken_type tok, int l){
 
         //emit instructions to load the identifier & print it
         //need to update L
+        //Checks if this is a constant (unsure if this is necessary)
+        if (symbol_kind(sym_pos) == 1){
+            emit (LIT, l - symbol_level(sym_pos), symbol_address(sym_pos));
+        }
+
+        else{
         emit (LOD, l - symbol_level(sym_pos), symbol_address(sym_pos));
+        } // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
         emit(SIO, 0, 0);
 
         tok = advance(tok);
@@ -557,7 +560,7 @@ aToken_type factor(aToken_type tok, int l){
             }
             else {
                 //need to update L
-                emit(LOD, l - symbol_level(sym_pos), symbol_address(sym_pos));
+                emit(LOD, l - symbol_level(sym_pos), symbol_address(sym_pos)); //***************************************
             }
 		}else if(tok.t == numbersym){
             emit(LIT, 0, (tok.val).number);
