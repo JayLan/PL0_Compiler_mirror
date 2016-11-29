@@ -124,7 +124,7 @@ aToken_type block(aToken_type tok, int l){
     tok = statement(tok, l);
 
     //rewind to previous location in symbol table for scope control
-    symctr = prev_symctr;
+    symctr = prev_symctr; *******************************************put this back!!!!
 
 	return tok;
 }
@@ -157,7 +157,7 @@ aToken_type const_declaration(aToken_type tok, int l){
 		}
 
 		//add constant to symbol table
-		put_symbol(1, id, tok.t, l, 0);
+		put_symbol(1, id, tok.t, l, tok.val.number);
 
 		tok = advance(tok);
 
