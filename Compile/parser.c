@@ -125,7 +125,7 @@ aToken_type block(aToken_type tok, int l){
     tok = statement(tok, l);
 
     //rewind to previous location in symbol table for scope control
-    //symctr = prev_symctr;
+    symctr = prev_symctr;
 
 	return tok;
 }
@@ -341,12 +341,26 @@ aToken_type statement(aToken_type tok, int l){
         ctemp = cx;
         emit(JPC, 0, 0);
         tok = statement(tok, l);
-        codeArray[ctemp].m = cx;
+        if (tok.t == elsesym){
+            do {
+                tok = advance(tok);
+                int ctemp2 = cx;
+                emit(JMP, 0, 0);
+                codeArray[ctemp].m = cx;//***
+                tok = statement(tok, l);
+                codeArray[ctemp2].m = cx;
+                printf("ELSE: updating jmp at %d to %d\n", ctemp2, cx);
+            } while (tok.t == elsesym);
+        }
+        else{
+            codeArray[ctemp].m = cx;
+        }
+        printf("ELSE: updating jpc at %d to %d\n", ctemp, cx);
 
         return tok;
     }
 
-    if (tok.t == elsesym){ //**************************
+    /*if (tok.t == elsesym){ *************************
 
         do {
         tok = advance(tok);
@@ -358,7 +372,7 @@ aToken_type statement(aToken_type tok, int l){
         } while (tok.t == elsesym);
 
         return tok;
-    }                      //**************************
+    }                      //**************************/
 
 
     if(tok.t == whilesym){

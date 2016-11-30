@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
     }
 
     // remove the following line for command line execution
-    //argv[1] = "test/test_factorial.pl0";
+    //argv[1] = "test/test4.pl0";
 
     //open source file and writable clean file
     source = fopen(argv[1], "r");
@@ -98,8 +98,8 @@ int main(int argc, char* argv[]) {
 
     //print the symbol table to std out
     /*printf("\n-------------------SYMBOLS-------------------\n");
-    print_symboltable();
-    */
+    print_symboltable();*/
+
 
     // Close the cleanFile pointer
     fclose(clean);
@@ -112,10 +112,10 @@ int main(int argc, char* argv[]) {
     }
 
     //print to codeFile
-    printf("\n\nPM0 output:\n------\n");
+    /*printf("\n\nPM0 output:\n------\n");*/
     print_pm0(codeFile);
     //print to stdout
-    print_pm0_screen();
+    //print_pm0_screen();
 
     //printf("Compiled PM0 code written to %s\n", argv[2]);
 
