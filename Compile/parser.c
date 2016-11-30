@@ -119,12 +119,13 @@ aToken_type block(aToken_type tok, int l){
 
     //update JMP & emit INC
     codeArray[jx].m = cx;
+    printf("BLOCK: updating jmp at %d to %d\n", jx, cx);
     emit(INC, 0, space);
 
     tok = statement(tok, l);
 
     //rewind to previous location in symbol table for scope control
-    symctr = prev_symctr;
+    //symctr = prev_symctr;
 
 	return tok;
 }
@@ -229,8 +230,8 @@ aToken_type proc_declaration(aToken_type tok, int l){
 		}
 
 		//add procedure to symbol table
-		int proc_pos = symctr;
-        put_symbol(3, tok.val.identifier, 0, l, 0);
+		//int proc_pos = symctr;
+        put_symbol(3, tok.val.identifier, 0, l, px);
 
 		tok = advance(tok);
 
@@ -244,7 +245,7 @@ aToken_type proc_declaration(aToken_type tok, int l){
 		tok = block(tok, l+1);
 
 		//update procedure symbol with code address
-		update_address(proc_pos, px);
+		//update_address(proc_pos, px);
 
 		if(tok.t != semicolonsym){
 			error(5);
@@ -296,6 +297,7 @@ aToken_type statement(aToken_type tok, int l){
         }*/
 
         emit(CAL, l-symbol_level(sym_pos), symbol_address(sym_pos));
+        printf("CALL: symbol at row %d, address %d\n", sym_pos, symbol_address(sym_pos));
 
         tok = advance(tok);
     }
@@ -339,18 +341,21 @@ aToken_type statement(aToken_type tok, int l){
         ctemp = cx;
         emit(JPC, 0, 0);
         tok = statement(tok, l);
-        codeArray[ctemp].m = cx + 1; //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Don't know if this helps???
+        //codeArray[ctemp].m = cx + 1; //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Don't know if this helps???
 
         return tok;
     }
 
     if (tok.t == elsesym){ //**************************
 
-        do {tok = advance(tok);
+        do {
+        tok = advance(tok);
         ctemp = cx;
         emit(JMP, 0, 0);
         tok = statement(tok, l);
-        codeArray[ctemp].m = cx;} while (tok.t == elsesym);
+        codeArray[ctemp].m = cx;
+        printf("ELSE: updating jmp at %d to %d\n", ctemp, cx);
+        } while (tok.t == elsesym);
 
         return tok;
     }                      //**************************
@@ -372,6 +377,7 @@ aToken_type statement(aToken_type tok, int l){
 
         tok = statement(tok, l);
         emit(JMP, 0, cx1);
+        printf("WHILE: jmp printed at %d with %d\n", cx-1, cx1);
         codeArray[cx2].m = cx;
 
         return tok;
