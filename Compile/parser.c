@@ -341,7 +341,7 @@ aToken_type statement(aToken_type tok, int l){
         ctemp = cx;
         emit(JPC, 0, 0);
         tok = statement(tok, l);
-        //codeArray[ctemp].m = cx + 1; //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Don't know if this helps???
+        codeArray[ctemp].m = cx;
 
         return tok;
     }
