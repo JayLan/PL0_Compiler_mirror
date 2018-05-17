@@ -1,8 +1,0 @@
-const x := 8;
-var n;
-begin
-	n := n + x;
-	n := n * x;
-	n := n / x;
-	n := n - x;
-end.
