@@ -1,8 +1,0 @@
-begin
-
-	var r := 1;
-	var b := 1;
-	var markymarkandthefunkybunch := 33; /* identifier exceeds 12 characters */
-	var m := r + b;
-
-end.
