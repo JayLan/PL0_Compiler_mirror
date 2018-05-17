@@ -1,5 +1,0 @@
-var a, b;
-begin 
-	read a;
-	read 2 /*read must be followed by an ident, not a num */
-end.
